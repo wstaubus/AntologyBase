@@ -1,0 +1,6 @@
+{
+  "name": "Antology Base",
+  "description": "Ambiente profissional para romancistas e escritores com painel de progresso, fichário, estúdio de escrita e gestão de personagens e mundo.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

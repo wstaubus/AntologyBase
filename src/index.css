@@ -1,0 +1,122 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #04162e;
+  --color-primary-container: #1a2b44;
+  --color-on-primary: #ffffff;
+  --color-on-primary-container: #8292b0;
+  --color-primary-fixed: #d5e3ff;
+  --color-primary-fixed-dim: #b6c7e7;
+  
+  --color-secondary: #5e5e5b;
+  --color-secondary-container: #e1dfdb;
+  --color-secondary-fixed: #e4e2dd;
+  --color-on-secondary: #ffffff;
+  --color-on-secondary-container: #63635f;
+
+  --color-surface: #f6fafe;
+  --color-surface-dim: #d6dade;
+  --color-surface-bright: #f6fafe;
+  --color-surface-variant: #dfe3e7;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f0f4f8;
+  --color-surface-container: #eaeef2;
+  --color-surface-container-high: #e4e9ed;
+  --color-surface-container-highest: #dfe3e7;
+
+  --color-on-surface: #171c1f;
+  --color-on-surface-variant: #44474d;
+  --color-outline: #75777e;
+  --color-outline-variant: #c5c6ce;
+  --color-background: #f6fafe;
+  --color-on-background: #171c1f;
+
+  --font-serif: Merriweather, Georgia, serif;
+  --font-sans: Inter, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+/* Custom utility classes matching the design spec */
+.font-display-lg {
+  font-family: Merriweather, Georgia, serif;
+  font-size: 40px;
+  line-height: 52px;
+  letter-spacing: -0.02em;
+  font-weight: 700;
+}
+
+.font-headline-md {
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 24px;
+  line-height: 32px;
+  letter-spacing: -0.01em;
+  font-weight: 600;
+}
+
+.font-writing-canvas {
+  font-family: Merriweather, Georgia, serif;
+  font-size: 18px;
+  line-height: 34px;
+  letter-spacing: 0em;
+  font-weight: 400;
+}
+
+.font-interface-sm {
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+}
+
+.font-label-caps {
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+}
+
+/* Material Symbols configuration */
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 20px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c5c6ce;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #75777e;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #334155;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
