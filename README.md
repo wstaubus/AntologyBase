@@ -8,6 +8,7 @@
 
 ### 1. 📊 Visão Geral (Dashboard)
 - **Métricas de Escrita**: Contagem de palavras em tempo real, progresso da meta do livro, tempo estimado de leitura e contagem de capítulos.
+- **Dica de Escrita do Dia (Google Search Grounded)**: Widget inteligente com curadoria de técnicas literárias (tensão, ritmo, diálogos, caracterização e worldbuilding) alimentado por pesquisa e citações web verificadas em tempo real.
 - **Linha do Tempo e Atos**: Acompanhamento dos 3 atos narrativos (Apresentação, Confrontação e Resolução).
 - **Atalhos Rápidos**: Acesso direto para adicionar capítulos, personagens e locais.
 
@@ -28,7 +29,7 @@
 
 ### 5. 🛠️ Ferramentas Auxiliares
 - **Gerador de Nomes**: Sugestões de nomes por gênero narrativo (Fantasia, Sci-Fi, Histórico, Contemporâneo).
-- **Exportação Flexível**: Exporte o manuscrito completo em Markdown, TXT ou JSON estruturado.
+- **Exportação Flexível**: Exporte o manuscrito completo em **PDF Diagramado** (com diagramação A4, recuo clássico de parágrafos, cabeçalhos e numeração de páginas), **Markdown (.md)**, **Texto Puro (.txt)** ou **JSON Estruturado**.
 - **Histórico & Snapshots**: Pontos de restauração para recuperar versões anteriores do projeto.
 - **Temas Diurno & Noturno**: Alternância de modo escuro/claro acessível pelo menu lateral.
 
@@ -37,6 +38,7 @@
 ## 🚀 Tecnologias Utilizadas
 
 - **React 19** com **TypeScript**
+- **jsPDF** para geração e diagramação de manuscritos em PDF
 - **Tailwind CSS v4** para estilização moderna e responsiva
 - **Motion (`motion/react`)** para transições e animações fluidas
 - **Vite** para compilação rápida e ambiente de desenvolvimento ágil

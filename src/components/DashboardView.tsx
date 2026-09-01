@@ -1,5 +1,6 @@
 import React from 'react';
 import { NovelProject, NavigationTab } from '../types';
+import { WritingTipWidget } from './WritingTipWidget';
 
 interface DashboardViewProps {
   project: NovelProject;
@@ -250,6 +251,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </p>
         </div>
       </div>
+
+      {/* Writing Tip of the Day with Google Search Grounding */}
+      <WritingTipWidget className="mb-10" />
 
       {/* Quick Actions Section */}
       <div id="quick-actions-section" className="mb-10">

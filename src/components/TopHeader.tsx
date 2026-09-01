@@ -73,7 +73,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                 : 'text-[#44474d] hover:text-[#04162e] opacity-80 hover:opacity-100 border-b-2 border-transparent'
             }`}
           >
-            Fichário
+            Capítulos
           </button>
 
           <button
