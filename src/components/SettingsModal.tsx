@@ -223,6 +223,63 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             />
           </div>
 
+          {/* Identidade Visual & Paleta: Azul, Branco e Grafite */}
+          <div className="p-4 bg-[#f8fafc] rounded-lg border border-[#cbd5e1] space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-[#0a1c38] text-[20px]">
+                  palette
+                </span>
+                <div>
+                  <h3 className="font-bold text-[#0a1c38] text-xs">
+                    Paleta de Cores: Azul, Branco & Grafite
+                  </h3>
+                  <p className="text-[10px] text-[#475569]">
+                    Design cromático focado em legibilidade tipográfica, redução de fadiga ocular e harmonia estética.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
+              {/* Swatch 1: Azul */}
+              <div className="p-2.5 rounded-lg bg-[#0e1726] border border-[#1e2d44] text-white flex flex-col justify-between h-20 shadow-xs">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-blue-400">Azul Naval</span>
+                  <span className="w-3 h-3 rounded-full bg-blue-500 border border-white/50"></span>
+                </div>
+                <div className="text-[10px] text-slate-300">
+                  <span className="font-mono text-[9px] text-blue-300 block">#0a1c38 · #1e3a8a · #2563eb</span>
+                  <span>Acentos, links, botões e foco</span>
+                </div>
+              </div>
+
+              {/* Swatch 2: Branco */}
+              <div className="p-2.5 rounded-lg bg-white border border-[#cbd5e1] text-[#0f172a] flex flex-col justify-between h-20 shadow-xs">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-900">Branco Puro</span>
+                  <span className="w-3 h-3 rounded-full bg-white border border-slate-400"></span>
+                </div>
+                <div className="text-[10px] text-slate-600">
+                  <span className="font-mono text-[9px] text-slate-500 block">#ffffff · #f8fafc · #f1f5f9</span>
+                  <span>Páginas de escrita e cartões</span>
+                </div>
+              </div>
+
+              {/* Swatch 3: Grafite */}
+              <div className="p-2.5 rounded-lg bg-[#18202f] border border-[#2d3a4f] text-white flex flex-col justify-between h-20 shadow-xs">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-300">Grafite Carvão</span>
+                  <span className="w-3 h-3 rounded-full bg-[#334155] border border-slate-400"></span>
+                </div>
+                <div className="text-[10px] text-slate-300">
+                  <span className="font-mono text-[9px] text-cyan-300 block">#0f172a · #1e293b · #475569</span>
+                  <span>Estrutura, bordas e tipografia</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Auto-Save & Storage Section */}
           <div className="p-3.5 bg-[#f6fafe] rounded-lg border border-[#c5c6ce] space-y-3">
             <div className="flex items-center justify-between">

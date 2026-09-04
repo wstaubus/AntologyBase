@@ -1,14 +1,10 @@
 import express from 'express';
 import path from 'path';
-import { fileURLToPath } from 'url';
 import { createServer as createViteServer } from 'vite';
 import { GoogleGenAI } from '@google/genai';
 import dotenv from 'dotenv';
 
 dotenv.config();
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = 3000;
@@ -35,75 +31,159 @@ function getAiClient(): GoogleGenAI | null {
   return aiClient;
 }
 
-// Fallback curated tips when offline or without API key
+// Fallback curated tips when offline, without API key, or when API quota is constrained
 const FALLBACK_TIPS = [
   {
-    category: 'Construção de Cena',
+    category: 'Construção de Cena & Ritmo',
     title: 'A Regra da Entrada Tardia e Saída Precoce',
     content:
-      'Comece cada cena no momento mais tardio possível (in media res) e termine-a logo após a revelação ou ponto de virada dramático, antes que o ritmo desacelere. Isso mantém a tração narrativa alta.',
-    source: "Writer's Digest & Robert McKee",
+      'Comece cada cena no momento mais tardio possível (in media res) e termine-a logo após a revelação ou ponto de virada dramático, antes que o ritmo desacelere. Isso mantém a tração narrativa alta e engaja o leitor de imediato.',
+    source: "Writer's Digest & Robert McKee (Story)",
     sources: [
       {
         title: "Writer's Digest - Scene Crafting Guidelines",
         uri: 'https://www.writersdigest.com/write-better-fiction',
       },
+      {
+        title: 'Robert McKee - Story: Substance, Structure, Style',
+        uri: 'https://mckeestory.com',
+      },
     ],
+    topicKeys: ['tensão', 'ritmo', 'cena', 'suspense', 'ação'],
   },
   {
     category: 'Diálogos & Subtexto',
-    title: 'O Poder do Subtexto e Não-Ditos',
+    title: 'O Poder do Subtexto e dos Não-Ditos',
     content:
-      'Personagens raramente dizem exatamente o que sentem. O subtexto surge do contraste entre o que é dito verbalmente e a ação física ou hesitação que o acompanha.',
-    source: 'The Paris Review - Art of Fiction',
+      'Personagens raramente dizem com exatidão o que sentem no íntimo. O subtexto mais poderoso surge do contraste entre o que é pronunciado em voz alta e a hesitação, o silêncio ou a ação física que o acompanha na cena.',
+    source: 'The Paris Review - The Art of Fiction',
     sources: [
       {
-        title: 'The Paris Review - The Art of Fiction',
+        title: 'The Paris Review - The Art of Fiction Interviews',
         uri: 'https://www.theparisreview.org/interviews',
       },
-    ],
-  },
-  {
-    category: 'Ritmo Narrativo',
-    title: 'Alterne a Densidade Sensorial',
-    content:
-      'Em momentos de alta adrenalina, use frases curtas e verbos de ação direta. Em momentos reflexivos ou de transição pós-clímax, expanda as descrições sensoriais e o monólogo interior.',
-    source: 'Reedsy Craft Guides',
-    sources: [
       {
-        title: 'Reedsy - Pacing in Fiction',
-        uri: 'https://blog.reedsy.com/guide/pacing-in-writing/',
+        title: 'Sol Stein - Stein On Writing (Dialogue Craft)',
+        uri: 'https://us.macmillan.com',
       },
     ],
+    topicKeys: ['diálogo', 'dialogo', 'subtexto', 'conversa', 'voz'],
   },
   {
     category: 'Desenvolvimento de Personagens',
-    title: 'Desejo Primário vs. Necessidade Oculta',
+    title: 'Desejo Primário (Want) vs. Necessidade Oculta (Need)',
     content:
-      'Dê ao protagonista um objetivo claro e consciente (o que ele quer), mas force-o a confrontar uma verdade emocional interna que ele resiste em aceitar (o que ele precisa).',
-    source: 'Story Grid & Stephen King',
+      'Dê ao protagonista um objetivo claro e consciente (o que ele busca ativamente no enredo), mas force-o a confrontar uma verdade emocional interna que ele resiste em aceitar (o que ele realmente precisa para evoluir como ser humano).',
+    source: 'Story Grid & Stephen King (On Writing)',
     sources: [
       {
-        title: 'Story Grid - Character Motivation',
+        title: 'Story Grid - Character Motivation and Arcs',
         uri: 'https://storygrid.com',
       },
+      {
+        title: 'Stephen King - On Writing: A Memoir of the Craft',
+        uri: 'https://stephenking.com/works/nonfiction/on-writing.html',
+      },
     ],
+    topicKeys: ['personagem', 'personagens', 'psicologia', 'arco', 'protagonista'],
+  },
+  {
+    category: 'Worldbuilding & Ambientação',
+    title: 'A Técnica do Iceberg e Integração Sensorial',
+    content:
+      'Construa 90% da história e das regras do seu universo nas notas de planejamento, mas revele apenas os 10% que interagem diretamente com os sentidos e as escolhas imediatas dos personagens, evitando blocos expositivos (info-dumps).',
+    source: 'Ursula K. Le Guin - Steering the Craft',
+    sources: [
+      {
+        title: 'Ursula K. Le Guin - Steering the Craft',
+        uri: 'https://www.ursulakleguin.com',
+      },
+      {
+        title: 'Brandon Sanderson - Lectures on Worldbuilding',
+        uri: 'https://www.brandonsanderson.com',
+      },
+    ],
+    topicKeys: ['worldbuilding', 'mundo', 'cenário', 'cenario', 'ambientação', 'ambientacao'],
+  },
+  {
+    category: "Show, Don't Tell & Estilo",
+    title: 'A Prosa Sensorial e a Arma de Tchekhov',
+    content:
+      'Em vez de afirmar que um ambiente é opressivo ou que um personagem está angustiado, mostre a umidade fria condensando no copo, o estalar do assoalho ou o roer rítmico das unhas. Se um detalhe é introduzido, faça-o ressoar no conflito.',
+    source: 'Anton Tchekhov & James Wood (How Fiction Works)',
+    sources: [
+      {
+        title: 'James Wood - How Fiction Works',
+        uri: 'https://us.macmillan.com',
+      },
+      {
+        title: 'The Elements of Style - William Strunk Jr. & E.B. White',
+        uri: 'https://www.gutenberg.org',
+      },
+    ],
+    topicKeys: ['show', 'tell', 'prosa', 'sensorial', 'estilo', 'descrição', 'descricao'],
+  },
+  {
+    category: 'Estrutura & Ponto de Virada',
+    title: 'O Midpoint e a Mudança de Reativo para Proativo',
+    content:
+      'No ponto central exato da narrativa (Midpoint), revele uma verdade crucial ou uma falsa vitória/derrota que transforme o protagonista: de uma postura passiva e reativa às circunstâncias para uma postura resoluta e ofensiva.',
+    source: 'Save the Cat! Writes a Novel & Syd Field',
+    sources: [
+      {
+        title: 'Jessica Brody - Save the Cat! Writes a Novel',
+        uri: 'https://savethecat.com',
+      },
+    ],
+    topicKeys: ['estrutura', 'ponto de virada', 'midpoint', 'segundo ato', 'enredo', 'clímax', 'climax'],
+  },
+  {
+    category: 'Rotina & Foco Criativo',
+    title: 'O Ritual da Primeira Hora e o Fechamento da Porta',
+    content:
+      'Escreva o primeiro rascunho com a porta fechada — sem autocrítica ou edição simultânea. Reserve a porta aberta para a fase de revisão, onde a clareza e o olhar analítico refinam a mensagem para o leitor.',
+    source: 'Stephen King - Sobre a Escrita',
+    sources: [
+      {
+        title: 'Stephen King - On Writing',
+        uri: 'https://stephenking.com',
+      },
+    ],
+    topicKeys: ['rotina', 'bloqueio', 'hábito', 'habito', 'foco', 'criatividade'],
   },
 ];
 
-// API: Dica de Escrita do Dia com Google Search Grounding
+// Helper to select the most relevant fallback tip based on query or random
+function getCuratedTipForTopic(topicQuery?: string) {
+  if (topicQuery) {
+    const q = topicQuery.toLowerCase();
+    const matched = FALLBACK_TIPS.filter((t) =>
+      t.topicKeys.some((k) => q.includes(k))
+    );
+    if (matched.length > 0) {
+      return matched[Math.floor(Math.random() * matched.length)];
+    }
+  }
+  return FALLBACK_TIPS[Math.floor(Math.random() * FALLBACK_TIPS.length)];
+}
+
+// API: Dica de Escrita do Dia com Google Search Grounding e Fallback de Alta Fidelidade
 app.get('/api/writing-tip', async (req, res) => {
+  const topic = req.query.topic as string;
+
   try {
     const ai = getAiClient();
-    const topic = req.query.topic as string;
 
     if (!ai) {
-      const randomFallback =
-        FALLBACK_TIPS[Math.floor(Math.random() * FALLBACK_TIPS.length)];
+      const selected = getCuratedTipForTopic(topic);
       return res.json({
-        ...randomFallback,
+        category: selected.category,
+        title: selected.title,
+        content: selected.content,
+        source: selected.source,
+        sources: selected.sources,
         grounded: false,
-        note: 'Dica do acervo editorial Antology Base',
+        note: 'Acervo Curado Editorial Antology Base',
       });
     }
 
@@ -177,14 +257,114 @@ Retorne no formato estruturado:
       grounded: true,
       query: chosenTopic,
     });
-  } catch (error) {
-    console.error('Erro ao buscar dica de escrita com Gemini Search:', error);
-    const randomFallback =
-      FALLBACK_TIPS[Math.floor(Math.random() * FALLBACK_TIPS.length)];
+  } catch (error: any) {
+    // Gracefully handle rate limits, billing / quota exhaustion or network timeouts without logging unhandled fatal errors
+    const isQuotaOrRateLimit =
+      error?.status === 429 ||
+      error?.message?.includes('RESOURCE_EXHAUSTED') ||
+      error?.message?.includes('quota') ||
+      error?.message?.includes('credit');
+
+    if (isQuotaOrRateLimit) {
+      console.info(
+        'Aviso: Limite de cota Gemini/Search temporariamente atingido. Servindo dica do Acervo Editorial Antology Base.'
+      );
+    } else {
+      console.warn(
+        'Aviso na consulta Gemini Search, utilizando Acervo Editorial:',
+        error?.message || error
+      );
+    }
+
+    const selected = getCuratedTipForTopic(topic);
     return res.json({
-      ...randomFallback,
+      category: selected.category,
+      title: selected.title,
+      content: selected.content,
+      source: selected.source,
+      sources: selected.sources,
       grounded: false,
-      error: 'Usando dica do acervo editorial',
+      note: 'Acervo Curado Editorial Antology Base',
+    });
+  }
+});
+
+// API: Dicionário de Sinônimos Literários Enriquecidos via Gemini para Romancistas
+app.post('/api/synonyms', async (req, res) => {
+  const { word, context } = req.body || {};
+
+  if (!word || typeof word !== 'string' || word.trim().length === 0) {
+    return res.status(400).json({ error: 'Palavra não informada' });
+  }
+
+  const cleanWord = word.trim().slice(0, 50);
+  const cleanContext = typeof context === 'string' ? context.trim().slice(0, 300) : '';
+
+  try {
+    const ai = getAiClient();
+    if (!ai) {
+      return res.json({
+        word: cleanWord,
+        category: 'Vocabulário Geral',
+        synonyms: [],
+        offline: true,
+      });
+    }
+
+    const prompt = `Você é um refinado consultor de estilo literário e lexicógrafo para romancistas e escritores de ficção em língua portuguesa.
+O escritor está redigindo seu manuscrito e deseja substituir ou enriquecer a palavra: "${cleanWord}".
+${cleanContext ? `Contexto imediato da frase no romance: "${cleanContext}"` : ''}
+
+Forneça entre 5 e 8 sinônimos expressivos e evocativos para enriquecer a prosa e a dramaticidade da cena.
+Para cada termo, defina o registro estilístico e uma breve explicação de nuance narrativa (quando e por que usá-lo na cena).
+
+Retorne estritamente um objeto JSON com a seguinte estrutura:
+{
+  "word": "${cleanWord}",
+  "category": "Categoria gramatical ou atmosfera temática (ex: Verbo de Ação, Sensação Física, Descrição Visual, etc.)",
+  "meaning": "Significado essencial no contexto da narrativa",
+  "synonyms": [
+    {
+      "term": "palavra sugerida",
+      "nuance": "Explicação concisa do tom, intensidade emocional ou nuance estética",
+      "register": "literário | poético | dramático | sensorial | formal"
+    }
+  ]
+}`;
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-3.8-flash',
+      contents: prompt,
+      config: {
+        responseMimeType: 'application/json',
+      },
+    });
+
+    const rawText = response.text || '{}';
+    let parsed: any = {};
+    try {
+      parsed = JSON.parse(rawText);
+    } catch (_jsonErr) {
+      // Se houver formatação markdown em volta
+      const cleanJson = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
+      parsed = JSON.parse(cleanJson);
+    }
+
+    return res.json({
+      word: parsed.word || cleanWord,
+      category: parsed.category || 'Vocabulário Narrativo',
+      meaning: parsed.meaning || '',
+      synonyms: Array.isArray(parsed.synonyms) ? parsed.synonyms : [],
+      isAi: true,
+    });
+  } catch (error: any) {
+    // Tratamento resiliente de cota ou rede
+    return res.json({
+      word: cleanWord,
+      category: 'Vocabulário Narrativo',
+      synonyms: [],
+      error: error?.message || 'Falha ao consultar IA',
+      fallback: true,
     });
   }
 });

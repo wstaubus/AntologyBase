@@ -8,6 +8,7 @@ interface CharactersViewProps {
   onUpdateProject: (updated: NovelProject) => void;
   selectedCharId?: string | null;
   onSelectChar?: (id: string | null) => void;
+  isDarkMode?: boolean;
 }
 
 const ROLES: ('Todos' | CharacterRole)[] = [
@@ -25,6 +26,7 @@ export const CharactersView: React.FC<CharactersViewProps> = ({
   onUpdateProject,
   selectedCharId,
   onSelectChar,
+  isDarkMode = false,
 }) => {
   const [selectedRole, setSelectedRole] = useState<'Todos' | CharacterRole>('Todos');
   const [search, setSearch] = useState('');
@@ -169,10 +171,13 @@ export const CharactersView: React.FC<CharactersViewProps> = ({
       {/* Header */}
       <div className="mb-8 border-b border-[#c5c6ce] pb-6 flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4">
         <div>
-          <span className="font-label-caps text-label-caps text-[#44474d] uppercase tracking-wider mb-2 block text-xs">
+          <span className="font-label-caps text-label-caps text-[#44474d] dark:text-[#94a3b8] uppercase tracking-wider mb-2 block text-xs">
             Elenco & Dramatis Personae
           </span>
-          <h1 className="font-display-lg text-display-lg text-[#04162e] text-3xl sm:text-4xl">
+          <h1
+            id="characters-title"
+            className="font-display-lg text-display-lg text-[#04162e] dark:text-[#f8fafc] text-3xl sm:text-4xl"
+          >
             Personagens
           </h1>
         </div>

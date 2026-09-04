@@ -123,7 +123,15 @@ export interface NovelProject {
   autoSaveSettings?: AutoSaveSettings;
 }
 
-export type NavigationTab = 'dashboard' | 'characters' | 'world' | 'writing';
-export type TopSubTab = 'binder' | 'canvas' | 'inspector';
-export type StudioTheme = 'night-slate' | 'oled' | 'sepia-dark' | 'paper-light';
+export type NavigationTab = 'dashboard' | 'storyboard' | 'writing' | 'characters' | 'world';
+export type TopSubTab = 'binder' | 'editor' | 'inspector' | 'storyboard' | 'canvas';
+export type StudioTheme =
+  | 'azul-meia-noite'
+  | 'grafite-intenso'
+  | 'branco-editorial'
+  | 'grafite-gelo'
+  | 'night-slate'
+  | 'oled'
+  | 'sepia-dark'
+  | 'paper-light';
 export type StudioFontSize = 'sm' | 'base' | 'lg' | 'xl';

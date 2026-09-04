@@ -1,35 +1,37 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
-  --color-primary: #04162e;
-  --color-primary-container: #1a2b44;
+  --color-primary: #0a1c38;
+  --color-primary-container: #1e3a8a;
   --color-on-primary: #ffffff;
-  --color-on-primary-container: #8292b0;
-  --color-primary-fixed: #d5e3ff;
-  --color-primary-fixed-dim: #b6c7e7;
+  --color-on-primary-container: #bfdbfe;
+  --color-primary-fixed: #dbeafe;
+  --color-primary-fixed-dim: #93c5fd;
   
-  --color-secondary: #5e5e5b;
-  --color-secondary-container: #e1dfdb;
-  --color-secondary-fixed: #e4e2dd;
+  --color-secondary: #334155;
+  --color-secondary-container: #1e293b;
+  --color-secondary-fixed: #e2e8f0;
   --color-on-secondary: #ffffff;
-  --color-on-secondary-container: #63635f;
+  --color-on-secondary-container: #94a3b8;
 
-  --color-surface: #f6fafe;
-  --color-surface-dim: #d6dade;
-  --color-surface-bright: #f6fafe;
-  --color-surface-variant: #dfe3e7;
+  --color-surface: #f8fafc;
+  --color-surface-dim: #cbd5e1;
+  --color-surface-bright: #ffffff;
+  --color-surface-variant: #e2e8f0;
   --color-surface-container-lowest: #ffffff;
-  --color-surface-container-low: #f0f4f8;
-  --color-surface-container: #eaeef2;
-  --color-surface-container-high: #e4e9ed;
-  --color-surface-container-highest: #dfe3e7;
+  --color-surface-container-low: #f1f5f9;
+  --color-surface-container: #e8eef5;
+  --color-surface-container-high: #dfe6f0;
+  --color-surface-container-highest: #cbd5e1;
 
-  --color-on-surface: #171c1f;
-  --color-on-surface-variant: #44474d;
-  --color-outline: #75777e;
-  --color-outline-variant: #c5c6ce;
-  --color-background: #f6fafe;
-  --color-on-background: #171c1f;
+  --color-on-surface: #0f172a;
+  --color-on-surface-variant: #1e293b;
+  --color-outline: #475569;
+  --color-outline-variant: #cbd5e1;
+  --color-background: #f8fafc;
+  --color-on-background: #0f172a;
 
   --font-serif: Merriweather, Georgia, serif;
   --font-sans: Inter, system-ui, sans-serif;

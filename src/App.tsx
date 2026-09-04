@@ -7,6 +7,7 @@ import { DashboardView } from './components/DashboardView';
 import { CharactersView } from './components/CharactersView';
 import { WorldView } from './components/WorldView';
 import { WritingStudioView } from './components/WritingStudioView';
+import { StructureStoryboardView } from './components/StructureStoryboardView';
 import { FocusModeModal } from './components/FocusModeModal';
 import { NewChapterModal } from './components/NewChapterModal';
 import { ExportModal } from './components/ExportModal';
@@ -42,6 +43,15 @@ export default function App() {
     return false;
   });
 
+  // Sync dark class on documentElement for standard Tailwind dark mode variants
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [isDarkMode]);
+
   // Collapsible sidebar state (persisted)
   const SIDEBAR_COLLAPSED_KEY = 'digital_study_novel_sidebar_collapsed_v1';
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(() => {
@@ -51,6 +61,9 @@ export default function App() {
       return false;
     }
   });
+
+  // Mobile off-canvas drawer open/close state
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleToggleSidebar = useCallback(() => {
     setIsSidebarCollapsed((prev) => {
@@ -194,7 +207,56 @@ export default function App() {
   // Main navigation tab
   const [activeTab, setActiveTab] = useState<NavigationTab>('dashboard');
   // Top sub navigation (Fichário, Tela, Inspetor)
-  const [subTab, setSubTab] = useState<TopSubTab>('binder');
+  const [subTab, setSubTab] = useState<TopSubTab>('editor');
+
+  // Writing Studio specific layout panels state
+  const [isBinderOpen, setIsBinderOpen] = useState(true);
+  const [isInspectorOpen, setIsInspectorOpen] = useState(true);
+  const [isStoryboardOpen, setIsStoryboardOpen] = useState(false);
+  const [isReadingMode, setIsReadingMode] = useState(false);
+
+  const handleToggleReadingMode = () => {
+    if (activeTab !== 'writing') {
+      setActiveTab('writing');
+      setIsReadingMode(true);
+    } else {
+      setIsReadingMode((prev) => !prev);
+    }
+  };
+
+  const handleToggleBinder = () => {
+    if (activeTab !== 'writing') {
+      setActiveTab('writing');
+      setIsBinderOpen(true);
+      setIsStoryboardOpen(false);
+    } else {
+      if (isStoryboardOpen) {
+        setIsStoryboardOpen(false);
+        setIsBinderOpen(true);
+      } else {
+        setIsBinderOpen((prev) => !prev);
+      }
+    }
+  };
+
+  const handleToggleStoryboard = () => {
+    setActiveTab((prev) => (prev === 'storyboard' ? 'writing' : 'storyboard'));
+  };
+
+  const handleToggleInspector = () => {
+    if (activeTab !== 'writing') {
+      setActiveTab('writing');
+      setIsInspectorOpen(true);
+      setIsStoryboardOpen(false);
+    } else {
+      if (isStoryboardOpen) {
+        setIsStoryboardOpen(false);
+        setIsInspectorOpen(true);
+      } else {
+        setIsInspectorOpen((prev) => !prev);
+      }
+    }
+  };
 
   // Search state
   const [searchQuery, setSearchQuery] = useState('');
@@ -212,6 +274,14 @@ export default function App() {
   // Selected item filters for direct deep-linking across views
   const [selectedCharacterId, setSelectedCharacterId] = useState<string | null>(null);
   const [selectedLocationId, setSelectedLocationId] = useState<string | null>(null);
+  const [selectedChapterId, setSelectedChapterId] = useState<string>(project.chapters[0]?.id || '');
+  const [selectedSceneId, setSelectedSceneId] = useState<string>(project.chapters[0]?.scenes[0]?.id || '');
+
+  const handleOpenSceneInEditor = (chapterId: string, sceneId: string) => {
+    setSelectedChapterId(chapterId);
+    setSelectedSceneId(sceneId);
+    setActiveTab('writing');
+  };
 
   const handleUpdateProject = (updated: NovelProject) => {
     setProject(updated);
@@ -228,12 +298,36 @@ export default function App() {
     setIsFocusModeOpen(true);
   };
 
+  const handleSelectEditor = () => {
+    if (activeTab !== 'writing') {
+      setActiveTab('writing');
+    }
+    setIsStoryboardOpen(false);
+    setIsReadingMode(false);
+    setSubTab('editor');
+  };
+
   // Top header subTab switch handler
   const handleSelectSubTab = (newSubTab: TopSubTab) => {
     setSubTab(newSubTab);
-    // If user clicks on Fichário, Tela, or Inspetor, automatically navigate to Writing Studio if not already there
+    // If user clicks on Capítulos, Editor, Inspetor or Storyboard, automatically navigate to Writing Studio if not already there
     if (activeTab !== 'writing') {
       setActiveTab('writing');
+    }
+    if (newSubTab === 'editor') {
+      setIsStoryboardOpen(false);
+      setIsReadingMode(false);
+    } else if (newSubTab === 'storyboard' || newSubTab === 'canvas') {
+      setIsStoryboardOpen(true);
+      setIsReadingMode(false);
+    } else if (newSubTab === 'binder') {
+      setIsStoryboardOpen(false);
+      setIsReadingMode(false);
+      setIsBinderOpen(true);
+    } else if (newSubTab === 'inspector') {
+      setIsStoryboardOpen(false);
+      setIsReadingMode(false);
+      setIsInspectorOpen(true);
     }
   };
 
@@ -270,7 +364,7 @@ export default function App() {
         isDarkMode ? 'bg-[#090d16] text-[#e2e8f0]' : 'bg-[#f6fafe] text-[#171c1f]'
       }`}
     >
-      {/* 1. Left Fixed Sidebar (260px expanded / 72px collapsed) */}
+      {/* 1. Left Fixed Sidebar (260px expanded / 72px collapsed on desktop; Off-canvas drawer on mobile) */}
       <Sidebar
         project={project}
         activeTab={activeTab}
@@ -281,35 +375,49 @@ export default function App() {
         onOpenExport={() => setIsExportOpen(true)}
         onOpenSettings={() => setIsSettingsOpen(true)}
         onOpenSync={() => setIsSyncOpen(true)}
+        onOpenShare={() => setIsShareOpen(true)}
+        onOpenAuthorProfile={() => setIsSettingsOpen(true)}
         isDarkMode={isDarkMode}
         onToggleDarkMode={handleToggleDarkMode}
         isCollapsed={isSidebarCollapsed}
         onToggleCollapse={handleToggleSidebar}
+        isMobileOpen={isMobileMenuOpen}
+        onCloseMobile={() => setIsMobileMenuOpen(false)}
       />
 
-      {/* 2. Main Area (Fluid, offset dynamically by sidebar width) */}
+      {/* 2. Main Area (Fluid, offset dynamically by sidebar width on desktop, full width on mobile) */}
       <div
-        className={`${
-          isSidebarCollapsed ? 'ml-[72px] w-[calc(100%-72px)]' : 'ml-[260px] w-[calc(100%-260px)]'
-        } min-h-screen flex flex-col transition-all duration-200 ease-in-out`}
+        className={`w-full min-h-screen flex flex-col transition-all duration-200 ease-in-out ${
+          isSidebarCollapsed ? 'lg:ml-[72px] lg:w-[calc(100%-72px)]' : 'lg:ml-[260px] lg:w-[calc(100%-260px)]'
+        } pb-16 lg:pb-0`}
       >
         {/* Top Header */}
         <TopHeader
           project={project}
           currentSubTab={subTab}
           onSelectSubTab={handleSelectSubTab}
+          activeTab={activeTab}
+          onNavigateTab={(tab) => {
+            setActiveTab(tab);
+            setSearchQuery('');
+          }}
+          isBinderOpen={isBinderOpen}
+          onToggleBinder={handleToggleBinder}
+          onSelectEditor={handleSelectEditor}
+          isInspectorOpen={isInspectorOpen}
+          onToggleInspector={handleToggleInspector}
+          isStoryboardOpen={activeTab === 'storyboard' || isStoryboardOpen}
+          onToggleStoryboard={handleToggleStoryboard}
           onOpenFocusMode={() => handleOpenFocusMode()}
-          onOpenNewChapter={() => setIsNewChapterOpen(true)}
           onOpenHistory={() => setIsHistoryOpen(true)}
-          onOpenShare={() => setIsShareOpen(true)}
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
-          onOpenAuthorProfile={() => setIsSettingsOpen(true)}
           isDarkMode={isDarkMode}
           onToggleDarkMode={handleToggleDarkMode}
           autoSaveStatus={autoSaveStatus}
           lastSavedAt={lastSavedAt}
           onForceSave={handleForceSave}
+          onToggleMobileMenu={() => setIsMobileMenuOpen((prev) => !prev)}
         />
 
         {/* Global Search Results Overlay if search query exists */}
@@ -452,6 +560,7 @@ export default function App() {
               setSelectedLocationId(id);
               setActiveTab('world');
             }}
+            isDarkMode={isDarkMode}
           />
         )}
 
@@ -461,6 +570,7 @@ export default function App() {
             onUpdateProject={handleUpdateProject}
             selectedCharId={selectedCharacterId}
             onSelectChar={setSelectedCharacterId}
+            isDarkMode={isDarkMode}
           />
         )}
 
@@ -472,12 +582,33 @@ export default function App() {
           />
         )}
 
+        {activeTab === 'storyboard' && (
+          <StructureStoryboardView
+            project={project}
+            onUpdateProject={handleUpdateProject}
+            onOpenSceneInEditor={handleOpenSceneInEditor}
+            onOpenNewChapter={() => setIsNewChapterOpen(true)}
+            isDarkMode={isDarkMode}
+          />
+        )}
+
         {activeTab === 'writing' && (
           <WritingStudioView
             project={project}
             onUpdateProject={handleUpdateProject}
             subTab={subTab}
             onSelectSubTab={setSubTab}
+            selectedChapterId={selectedChapterId}
+            selectedSceneId={selectedSceneId}
+            onNavigateStoryboard={() => setActiveTab('storyboard')}
+            isBinderOpen={isBinderOpen}
+            onToggleBinder={handleToggleBinder}
+            isInspectorOpen={isInspectorOpen}
+            onToggleInspector={handleToggleInspector}
+            isStoryboardOpen={isStoryboardOpen}
+            onToggleStoryboard={handleToggleStoryboard}
+            isReadingMode={isReadingMode}
+            onToggleReadingMode={handleToggleReadingMode}
             onOpenFocusMode={handleOpenFocusMode}
             onOpenNewChapter={() => setIsNewChapterOpen(true)}
             isDarkMode={isDarkMode}
@@ -501,6 +632,127 @@ export default function App() {
           <span>{toastMessage.text}</span>
         </div>
       )}
+
+      {/* Mobile Bottom Navigation Bar (Visible only on <lg screens) */}
+      <nav
+        id="mobile-bottom-nav"
+        className={`lg:hidden fixed bottom-0 left-0 right-0 z-40 border-t flex items-center justify-around h-14 px-1 shadow-lg backdrop-blur-md transition-colors ${
+          isDarkMode
+            ? 'bg-[#0d1420]/95 border-[#1e293b] text-[#e2e8f0]'
+            : 'bg-[#ffffff]/95 border-[#c5c6ce] text-[#171c1f]'
+        }`}
+      >
+        <button
+          onClick={() => {
+            setActiveTab('dashboard');
+            setSearchQuery('');
+          }}
+          className={`flex flex-col items-center justify-center flex-1 py-1 transition-colors ${
+            activeTab === 'dashboard'
+              ? isDarkMode
+                ? 'text-[#60a5fa]'
+                : 'text-[#04162e] font-bold'
+              : isDarkMode
+              ? 'text-[#94a3b8]'
+              : 'text-[#75777e]'
+          }`}
+        >
+          <span className="material-symbols-outlined text-[20px]">dashboard</span>
+          <span className="text-[10px] tracking-tight">Painel</span>
+        </button>
+
+        <button
+          onClick={() => {
+            setActiveTab('storyboard');
+            setSearchQuery('');
+          }}
+          className={`flex flex-col items-center justify-center flex-1 py-1 transition-colors ${
+            activeTab === 'storyboard'
+              ? isDarkMode
+                ? 'text-[#60a5fa]'
+                : 'text-[#04162e] font-bold'
+              : isDarkMode
+              ? 'text-[#94a3b8]'
+              : 'text-[#75777e]'
+          }`}
+        >
+          <span className="material-symbols-outlined text-[20px]">grid_view</span>
+          <span className="text-[10px] tracking-tight">Storyboard</span>
+        </button>
+
+        <button
+          onClick={() => {
+            setActiveTab('writing');
+            setSearchQuery('');
+          }}
+          className={`flex flex-col items-center justify-center flex-1 py-1 transition-colors ${
+            activeTab === 'writing'
+              ? isDarkMode
+                ? 'text-[#60a5fa]'
+                : 'text-[#04162e] font-bold'
+              : isDarkMode
+              ? 'text-[#94a3b8]'
+              : 'text-[#75777e]'
+          }`}
+        >
+          <span className="material-symbols-outlined text-[20px]">edit_note</span>
+          <span className="text-[10px] tracking-tight">Escrever</span>
+        </button>
+
+        <button
+          onClick={() => {
+            setActiveTab('characters');
+            setSearchQuery('');
+          }}
+          className={`flex flex-col items-center justify-center flex-1 py-1 transition-colors ${
+            activeTab === 'characters'
+              ? isDarkMode
+                ? 'text-[#60a5fa]'
+                : 'text-[#04162e] font-bold'
+              : isDarkMode
+              ? 'text-[#94a3b8]'
+              : 'text-[#75777e]'
+          }`}
+        >
+          <span className="material-symbols-outlined text-[20px]">group</span>
+          <span className="text-[10px] tracking-tight">Personagens</span>
+        </button>
+
+        <button
+          onClick={() => {
+            setActiveTab('world');
+            setSearchQuery('');
+          }}
+          className={`flex flex-col items-center justify-center flex-1 py-1 transition-colors ${
+            activeTab === 'world'
+              ? isDarkMode
+                ? 'text-[#60a5fa]'
+                : 'text-[#04162e] font-bold'
+              : isDarkMode
+              ? 'text-[#94a3b8]'
+              : 'text-[#75777e]'
+          }`}
+        >
+          <span className="material-symbols-outlined text-[20px]">public</span>
+          <span className="text-[10px] tracking-tight">Mundo</span>
+        </button>
+
+        <button
+          onClick={() => setIsMobileMenuOpen(true)}
+          className={`flex flex-col items-center justify-center flex-1 py-1 transition-colors ${
+            isMobileMenuOpen
+              ? isDarkMode
+                ? 'text-[#60a5fa]'
+                : 'text-[#04162e]'
+              : isDarkMode
+              ? 'text-[#94a3b8]'
+              : 'text-[#75777e]'
+          }`}
+        >
+          <span className="material-symbols-outlined text-[20px]">menu</span>
+          <span className="text-[10px] tracking-tight">Menu</span>
+        </button>
+      </nav>
 
       {/* Modals */}
       {isFocusModeOpen && (
