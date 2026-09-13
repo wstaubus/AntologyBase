@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { NovelProject, TopSubTab, AutoSaveStatus, NavigationTab } from '../types';
-import { AutoSaveIndicator } from './AutoSaveIndicator';
 
 interface TopHeaderProps {
   project: NovelProject;
@@ -21,14 +20,17 @@ interface TopHeaderProps {
   onOpenNewChapter?: () => void;
   onOpenHistory: () => void;
   onOpenShare?: () => void;
-  searchQuery: string;
-  onSearchChange: (q: string) => void;
+  searchQuery?: string;
+  onSearchChange?: (q: string) => void;
   onOpenAuthorProfile?: () => void;
   isDarkMode?: boolean;
   onToggleDarkMode?: () => void;
   autoSaveStatus?: AutoSaveStatus;
   lastSavedAt?: Date | null;
   onForceSave?: () => void;
+  isSidebarOpen?: boolean;
+  isMobileOpen?: boolean;
+  onToggleSidebar?: () => void;
   onToggleMobileMenu?: () => void;
 }
 
@@ -47,16 +49,25 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
   onToggleStoryboard,
   onOpenFocusMode,
   onOpenHistory,
-  searchQuery,
-  onSearchChange,
   isDarkMode = false,
-  autoSaveStatus = 'saved',
-  lastSavedAt = null,
-  onForceSave = () => {},
+  isSidebarOpen = true,
+  isMobileOpen = false,
+  onToggleSidebar,
   onToggleMobileMenu,
 }) => {
-  const [isSearchFocused, setIsSearchFocused] = useState(false);
-  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
+  const handleSidebarToggle = () => {
+    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+      if (onToggleMobileMenu) {
+        onToggleMobileMenu();
+      } else if (onToggleSidebar) {
+        onToggleSidebar();
+      }
+    } else {
+      if (onToggleSidebar) {
+        onToggleSidebar();
+      }
+    }
+  };
 
   return (
     <header
@@ -64,34 +75,52 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
       className={`${
         isDarkMode
           ? 'bg-[#0d1420] border-[#1e293b] text-[#f1f5f9]'
-          : 'bg-[#f6fafe] border-[#cbd5e1] text-[#0f172a]'
-      } flex justify-between items-center w-full px-3 sm:px-6 lg:px-10 py-2 sticky top-0 z-30 border-b h-14 sm:h-16 shrink-0 transition-colors duration-200`}
+          : 'bg-white border-[#c5c6ce] text-[#04162e]'
+      } flex justify-between items-center w-full px-3 sm:px-6 lg:px-10 py-3.5 sm:py-4.5 lg:py-5 sticky top-0 z-30 border-b min-h-[64px] sm:min-h-[76px] lg:min-h-[80px] shrink-0 transition-colors duration-200`}
     >
       <div className="flex items-center gap-2.5 sm:gap-4 lg:gap-6 min-w-0">
-        {/* Mobile Hamburger Menu Toggle Button (< lg) */}
-        {onToggleMobileMenu && (
+        {/* Sidebar Menu Toggle Button (Desktop & Mobile) */}
+        {handleSidebarToggle && (
           <button
-            id="btn-mobile-menu-toggle"
-            onClick={onToggleMobileMenu}
-            className={`lg:hidden p-2 rounded-lg transition-colors cursor-pointer active:scale-95 ${
+            id="btn-sidebar-toggle"
+            onClick={handleSidebarToggle}
+            className={`p-2 rounded-lg transition-colors cursor-pointer active:scale-95 flex items-center justify-center ${
               isDarkMode
                 ? 'text-[#cbd5e1] hover:text-white hover:bg-[#16202f]'
-                : 'text-[#1e293b] hover:text-[#04162e] hover:bg-[#eaeef2]'
+                : 'text-[#334155] hover:text-[#04162e] hover:bg-[#eaeef2]'
             }`}
-            title="Abrir menu de navegação"
+            title="Alternar menu lateral"
+            aria-label="Alternar menu lateral"
           >
-            <span className="material-symbols-outlined text-[22px]">menu</span>
+            <span className="material-symbols-outlined text-[24px] flex items-center justify-center">
+              menu
+            </span>
           </button>
         )}
 
-        {/* Brand Logo */}
+        {/* Book Title & Subtitle (swapped from sidebar) */}
         <div
-          id="brand-logo"
-          className={`font-headline-md text-headline-md font-extrabold tracking-tight ${
-            isDarkMode ? 'text-[#f8fafc]' : 'text-[#04162e]'
-          } text-base sm:text-lg lg:text-xl cursor-default flex items-center shrink-0`}
+          id="topheader-book-info"
+          className="flex flex-col min-w-0 max-w-[170px] sm:max-w-[280px] md:max-w-[360px] lg:max-w-[440px] pr-1 cursor-default justify-center"
         >
-          <span>Antology Base</span>
+          <span
+            id="topheader-book-title"
+            className={`font-headline-md font-bold text-sm sm:text-base leading-tight truncate ${
+              isDarkMode ? 'text-[#f8fafc]' : 'text-[#04162e]'
+            }`}
+            title={project.title}
+          >
+            {project.title}
+          </span>
+          <span
+            id="topheader-book-subtitle"
+            className={`font-interface-sm text-[11px] sm:text-xs truncate font-medium ${
+              isDarkMode ? 'text-[#94a3b8]' : 'text-[#334155]'
+            }`}
+            title={project.subtitle || `Fase de ${project.phase}`}
+          >
+            {project.subtitle || `Fase de ${project.phase}`}
+          </span>
         </div>
 
         {/* Navigation Sub-Links: Ficheiro & Inspetor */}
@@ -116,7 +145,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                   : 'text-[#04162e] border-b-2 border-[#04162e] font-bold opacity-100'
                 : isDarkMode
                 ? 'text-[#cbd5e1] hover:text-white hover:opacity-100 border-b-2 border-transparent font-medium'
-                : 'text-[#1e293b] hover:text-[#04162e] hover:opacity-100 border-b-2 border-transparent font-medium'
+                : 'text-[#334155] hover:text-[#04162e] hover:opacity-100 border-b-2 border-transparent font-medium'
             }`}
             title="Ficheiro: Capítulos & Cenas no Inspetor [Ctrl+B]"
           >
@@ -144,7 +173,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                   : 'text-[#04162e] border-b-2 border-[#04162e] font-bold opacity-100'
                 : isDarkMode
                 ? 'text-[#cbd5e1] hover:text-white hover:opacity-100 border-b-2 border-transparent font-medium'
-                : 'text-[#1e293b] hover:text-[#04162e] hover:opacity-100 border-b-2 border-transparent font-medium'
+                : 'text-[#334155] hover:text-[#04162e] hover:opacity-100 border-b-2 border-transparent font-medium'
             }`}
             title="Inspetor: Sinopse, POV, Personagens e Estilo [Ctrl+I]"
           >
@@ -155,91 +184,20 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
       </div>
 
       <div className="flex items-center gap-1.5 sm:gap-2.5 lg:gap-3">
-        {/* Search Bar on desktop */}
-        <div className="relative hidden lg:block">
-          <span
-            className={`material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 ${
-              isDarkMode ? 'text-[#94a3b8]' : 'text-[#475569]'
-            } text-base pointer-events-none`}
-          >
-            search
-          </span>
-          <input
-            id="search-input-header"
-            type="text"
-            value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
-            onFocus={() => setIsSearchFocused(true)}
-            onBlur={() => setIsSearchFocused(false)}
-            placeholder="Pesquisar..."
-            className={`pl-9 pr-4 py-1.5 ${
-              isDarkMode
-                ? 'bg-[#16202f] border-[#253347] text-[#f8fafc] placeholder-[#94a3b8] focus:border-[#60a5fa] focus:ring-1 focus:ring-[#60a5fa]'
-                : 'bg-[#eaeef2] border-[#cbd5e1] text-[#0f172a] placeholder-[#475569] focus:border-[#04162e] focus:ring-1 focus:ring-[#04162e]'
-            } border rounded font-interface-sm text-interface-sm focus:outline-none transition-all text-xs lg:text-sm ${
-              isSearchFocused ? 'w-52 lg:w-60' : 'w-36 lg:w-44'
-            }`}
-          />
-          {searchQuery && (
-            <button
-              onClick={() => onSearchChange('')}
-              className={`absolute right-2.5 top-1/2 -translate-y-1/2 ${
-                isDarkMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-[#04162e]'
-              }`}
-              title="Limpar busca"
-            >
-              <span className="material-symbols-outlined text-[14px]">close</span>
-            </button>
-          )}
-        </div>
-
-        {/* Mobile Search Toggle Icon (< md) */}
-        <button
-          onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)}
-          className={`md:hidden p-1.5 rounded-lg transition-colors cursor-pointer ${
-            isDarkMode
-              ? 'text-[#cbd5e1] hover:text-white hover:bg-[#16202f]'
-              : 'text-[#1e293b] hover:text-[#04162e] hover:bg-[#eaeef2]'
-          }`}
-          title="Pesquisar"
-        >
-          <span className="material-symbols-outlined text-[20px]">search</span>
-        </button>
-
-        {/* Auto Save Status Badge */}
-        <div className="hidden sm:block">
-          <AutoSaveIndicator
-            status={autoSaveStatus}
-            lastSavedAt={lastSavedAt}
-            onForceSave={onForceSave}
-            isDarkEffective={isDarkMode}
-            compact={false}
-          />
-        </div>
-
-        {/* Compact Auto Save version on very small screens */}
-        <div className="block sm:hidden">
-          <AutoSaveIndicator
-            status={autoSaveStatus}
-            lastSavedAt={lastSavedAt}
-            onForceSave={onForceSave}
-            isDarkEffective={isDarkMode}
-            compact={true}
-          />
-        </div>
-
-        {/* Icon Action: History (Hidden on smallest mobile, visible on sm+) */}
+        {/* Icon Action: History */}
         <button
           id="btn-header-history"
           onClick={onOpenHistory}
-          className={`hidden sm:flex p-1.5 sm:p-2 rounded-lg transition-colors cursor-pointer active:scale-95 ${
+          className={`flex items-center gap-1.5 p-1.5 sm:px-2.5 sm:py-1.5 rounded-lg transition-colors cursor-pointer active:scale-95 ${
             isDarkMode
               ? 'text-[#cbd5e1] hover:text-white hover:bg-[#16202f]'
-              : 'text-[#1e293b] hover:text-[#04162e] hover:bg-[#eaeef2]'
+              : 'text-[#334155] hover:text-[#04162e] hover:bg-[#eaeef2]'
           }`}
           title="Histórico de Revisões"
+          aria-label="Histórico de Revisões"
         >
           <span className="material-symbols-outlined text-[18px] sm:text-[20px]">history</span>
+          <span className="hidden md:inline text-xs font-medium">Revisões</span>
         </button>
 
         {/* Trailing Action: Modo Foco */}
@@ -249,7 +207,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
           className={`font-interface-sm text-interface-sm ${
             isDarkMode
               ? 'bg-[#16202f] hover:bg-[#1e293b] text-[#93c5fd] border-[#253347]'
-              : 'bg-[#e4e9ed] hover:bg-[#d8e0e7] text-[#04162e] border-[#cbd5e1]'
+              : 'bg-[#e4e9ed] hover:bg-[#d8e0e7] text-[#04162e] border-[#c5c6ce]'
           } border rounded-lg px-2.5 sm:px-3.5 py-1.5 active:scale-95 transition-all text-xs font-bold cursor-pointer flex items-center gap-1.5 shadow-xs`}
           title="Abrir Modo Foco / Zen de Escrita"
         >
@@ -257,35 +215,6 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
           <span className="hidden sm:inline">Modo Foco</span>
         </button>
       </div>
-
-      {/* Expandable Mobile Search Dropdown (< md) */}
-      {isMobileSearchOpen && (
-        <div
-          className={`md:hidden absolute top-full left-0 right-0 p-3 border-b shadow-lg z-50 flex items-center gap-2 ${
-            isDarkMode ? 'bg-[#0d1420] border-[#1e293b]' : 'bg-[#f6fafe] border-[#c5c6ce]'
-          }`}
-        >
-          <span className="material-symbols-outlined text-[#94a3b8] text-[18px]">search</span>
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Pesquisar cenas, personagens ou locais..."
-            autoFocus
-            className={`flex-1 px-3 py-1.5 rounded text-xs border ${
-              isDarkMode
-                ? 'bg-[#16202f] border-[#253347] text-white placeholder-gray-500'
-                : 'bg-white border-[#c5c6ce] text-[#171c1f] placeholder-gray-400'
-            } focus:outline-none`}
-          />
-          <button
-            onClick={() => setIsMobileSearchOpen(false)}
-            className="p-1.5 text-xs text-gray-500 hover:text-gray-700"
-          >
-            Fechar
-          </button>
-        </div>
-      )}
     </header>
   );
 };

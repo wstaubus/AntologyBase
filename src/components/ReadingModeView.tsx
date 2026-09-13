@@ -161,14 +161,14 @@ export const ReadingModeView: React.FC<ReadingModeViewProps> = ({
   // Style configurations
   const themeClasses = {
     paper: {
-      bg: 'bg-[#faf8f5]',
-      text: 'text-[#1c1917]',
-      secondary: 'text-[#78716c]',
-      border: 'border-[#e7e5e4]',
-      headerBg: 'bg-[#faf8f5]/90',
+      bg: 'bg-[#edf2f7]',
+      text: 'text-[#04162e]',
+      secondary: 'text-[#334155]',
+      border: 'border-[#cbd5e1]',
+      headerBg: 'bg-[#ffffff]/95 backdrop-blur-md',
       cardBg: 'bg-[#ffffff]',
-      highlightEcho: 'bg-amber-100 text-amber-900 border-b border-amber-300',
-      highlightAvoid: 'bg-rose-100 text-rose-900 border-b border-rose-300',
+      highlightEcho: 'bg-amber-100 text-amber-950 border-b-2 border-amber-400 font-medium',
+      highlightAvoid: 'bg-rose-100 text-rose-950 border-b-2 border-rose-400 font-medium',
     },
     sepia: {
       bg: 'bg-[#f5ede0]',
@@ -645,7 +645,11 @@ export const ReadingModeView: React.FC<ReadingModeViewProps> = ({
         tabIndex={0}
       >
         <article
-          className={`mx-auto ${columnWidthClass} ${fontClass} ${fontSizeClass} transition-all duration-150`}
+          className={`mx-auto ${columnWidthClass} ${fontClass} ${fontSizeClass} transition-all duration-150 ${
+            theme === 'paper'
+              ? 'bg-white p-6 sm:p-12 lg:p-16 rounded-2xl border border-[#cbd5e1] shadow-[0_4px_30px_rgba(4,22,46,0.08)]'
+              : ''
+          }`}
           style={{ lineHeight: lineHeightStyle }}
         >
           {/* Header of the Book / Scene Title */}

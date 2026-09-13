@@ -52,13 +52,14 @@ export default function App() {
     }
   }, [isDarkMode]);
 
-  // Collapsible sidebar state (persisted)
-  const SIDEBAR_COLLAPSED_KEY = 'digital_study_novel_sidebar_collapsed_v1';
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(() => {
+  // Hideable sidebar state (persisted)
+  const SIDEBAR_OPEN_KEY = 'digital_study_novel_sidebar_open_v1';
+  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(() => {
     try {
-      return localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === 'true';
+      const saved = localStorage.getItem(SIDEBAR_OPEN_KEY);
+      return saved !== null ? saved === 'true' : true;
     } catch {
-      return false;
+      return true;
     }
   });
 
@@ -66,15 +67,19 @@ export default function App() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleToggleSidebar = useCallback(() => {
-    setIsSidebarCollapsed((prev) => {
-      const next = !prev;
-      try {
-        localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(next));
-      } catch (e) {
-        console.warn('Erro ao salvar preferência do menu lateral:', e);
-      }
-      return next;
-    });
+    if (window.innerWidth < 1024) {
+      setIsMobileMenuOpen((prev) => !prev);
+    } else {
+      setIsSidebarOpen((prev) => {
+        const next = !prev;
+        try {
+          localStorage.setItem(SIDEBAR_OPEN_KEY, String(next));
+        } catch (e) {
+          console.warn('Erro ao salvar preferência do menu lateral:', e);
+        }
+        return next;
+      });
+    }
   }, []);
 
   // Toggle and persist Dark Mode
@@ -364,7 +369,7 @@ export default function App() {
         isDarkMode ? 'bg-[#090d16] text-[#e2e8f0]' : 'bg-[#f6fafe] text-[#171c1f]'
       }`}
     >
-      {/* 1. Left Fixed Sidebar (260px expanded / 72px collapsed on desktop; Off-canvas drawer on mobile) */}
+      {/* 1. Left Fixed Sidebar (260px expanded / hidden off-canvas on desktop; Off-canvas drawer on mobile) */}
       <Sidebar
         project={project}
         activeTab={activeTab}
@@ -374,21 +379,22 @@ export default function App() {
         }}
         onOpenExport={() => setIsExportOpen(true)}
         onOpenSettings={() => setIsSettingsOpen(true)}
+        onUpdateProject={setProject}
         onOpenSync={() => setIsSyncOpen(true)}
         onOpenShare={() => setIsShareOpen(true)}
         onOpenAuthorProfile={() => setIsSettingsOpen(true)}
         isDarkMode={isDarkMode}
         onToggleDarkMode={handleToggleDarkMode}
-        isCollapsed={isSidebarCollapsed}
+        isOpen={isSidebarOpen}
         onToggleCollapse={handleToggleSidebar}
         isMobileOpen={isMobileMenuOpen}
         onCloseMobile={() => setIsMobileMenuOpen(false)}
       />
 
-      {/* 2. Main Area (Fluid, offset dynamically by sidebar width on desktop, full width on mobile) */}
+      {/* 2. Main Area (Fluid, offset dynamically by sidebar width on desktop when open, full width when hidden or on mobile) */}
       <div
-        className={`w-full min-h-screen flex flex-col transition-all duration-200 ease-in-out ${
-          isSidebarCollapsed ? 'lg:ml-[72px] lg:w-[calc(100%-72px)]' : 'lg:ml-[260px] lg:w-[calc(100%-260px)]'
+        className={`w-full min-h-screen flex flex-col transition-all duration-300 ease-in-out ${
+          isSidebarOpen ? 'lg:ml-[260px] lg:w-[calc(100%-260px)]' : 'lg:ml-0 lg:w-full'
         } pb-16 lg:pb-0`}
       >
         {/* Top Header */}
@@ -410,13 +416,11 @@ export default function App() {
           onToggleStoryboard={handleToggleStoryboard}
           onOpenFocusMode={() => handleOpenFocusMode()}
           onOpenHistory={() => setIsHistoryOpen(true)}
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
           isDarkMode={isDarkMode}
           onToggleDarkMode={handleToggleDarkMode}
-          autoSaveStatus={autoSaveStatus}
-          lastSavedAt={lastSavedAt}
-          onForceSave={handleForceSave}
+          isSidebarOpen={isSidebarOpen}
+          isMobileOpen={isMobileMenuOpen}
+          onToggleSidebar={handleToggleSidebar}
           onToggleMobileMenu={() => setIsMobileMenuOpen((prev) => !prev)}
         />
 
@@ -494,11 +498,21 @@ export default function App() {
                         isDarkMode ? 'bg-[#111a28] hover:bg-[#1d2b40]' : 'bg-[#f6fafe] hover:bg-[#dfe3e7]'
                       }`}
                     >
-                      <img
-                        src={c.avatarUrl}
-                        alt={c.name}
-                        className="w-6 h-6 rounded-full object-cover"
-                      />
+                      {c.avatarUrl?.trim() ? (
+                        <img
+                          src={c.avatarUrl.trim()}
+                          alt={c.name}
+                          className="w-6 h-6 rounded-full object-cover"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src =
+                              'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&auto=format&fit=crop&q=80';
+                          }}
+                        />
+                      ) : (
+                        <div className="w-6 h-6 rounded-full bg-[#dfe3e7] dark:bg-[#1e293b] flex items-center justify-center text-[10px] font-bold">
+                          {c.name?.charAt(0)?.toUpperCase() || 'P'}
+                        </div>
+                      )}
                       <div className="min-w-0">
                         <p className={`font-semibold truncate ${isDarkMode ? 'text-[#f8fafc]' : 'text-[#04162e]'}`}>{c.name}</p>
                         <p className={`text-[10px] ${isDarkMode ? 'text-[#94a3b8]' : 'text-[#44474d]'}`}>{c.role}</p>
@@ -734,7 +748,7 @@ export default function App() {
           }`}
         >
           <span className="material-symbols-outlined text-[20px]">public</span>
-          <span className="text-[10px] tracking-tight">Mundo</span>
+          <span className="text-[10px] tracking-tight">Cenários</span>
         </button>
 
         <button
@@ -776,7 +790,23 @@ export default function App() {
       )}
 
       {isExportOpen && (
-        <ExportModal project={project} onClose={() => setIsExportOpen(false)} />
+        <ExportModal
+          project={project}
+          onClose={() => setIsExportOpen(false)}
+          onImportProject={(importedProject) => {
+            saveBackupSnapshot(project, 'manual');
+            handleUpdateProject(importedProject);
+            saveProjectToStorage(importedProject);
+            if (importedProject.chapters && importedProject.chapters.length > 0) {
+              setSelectedChapterId(importedProject.chapters[0].id);
+              if (importedProject.chapters[0].scenes && importedProject.chapters[0].scenes.length > 0) {
+                setSelectedSceneId(importedProject.chapters[0].scenes[0].id);
+              }
+            }
+            showToast(`Projeto "${importedProject.title}" importado com sucesso!`, 'success');
+          }}
+          isDarkMode={isDarkMode}
+        />
       )}
 
       {isSettingsOpen && (
@@ -784,6 +814,10 @@ export default function App() {
           project={project}
           onClose={() => setIsSettingsOpen(false)}
           onUpdateProject={handleUpdateProject}
+          isDarkMode={isDarkMode}
+          onToggleDarkMode={handleToggleDarkMode}
+          onForceSave={handleForceSave}
+          onRestoreDefaults={handleRestoreDefaults}
         />
       )}
 

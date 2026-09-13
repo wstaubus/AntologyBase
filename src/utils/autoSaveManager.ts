@@ -31,7 +31,46 @@ export function loadProjectFromStorage(fallback?: NovelProject): NovelProject | 
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return fallback ?? null;
-    return JSON.parse(raw);
+    const parsed: NovelProject = JSON.parse(raw);
+
+    // Sanitize empty image strings so they don't cause React empty src warnings or broken browser requests
+    if (fallback) {
+      if (!parsed.coverUrl?.trim() && fallback.coverUrl) {
+        parsed.coverUrl = fallback.coverUrl;
+      }
+      if (parsed.author && !parsed.author.avatarUrl?.trim() && fallback.author?.avatarUrl) {
+        parsed.author.avatarUrl = fallback.author.avatarUrl;
+      }
+      if (Array.isArray(parsed.characters)) {
+        parsed.characters = parsed.characters.map((char) => {
+          if (!char.avatarUrl?.trim()) {
+            const match = fallback.characters?.find((fc) => fc.id === char.id);
+            return {
+              ...char,
+              avatarUrl:
+                match?.avatarUrl?.trim() ||
+                'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&auto=format&fit=crop&q=80',
+            };
+          }
+          return char;
+        });
+      }
+      if (Array.isArray(parsed.locations)) {
+        parsed.locations = parsed.locations.map((loc) => {
+          if (!loc.imageUrl?.trim()) {
+            const match = fallback.locations?.find((fl) => fl.id === loc.id);
+            return {
+              ...loc,
+              imageUrl:
+                match?.imageUrl?.trim() ||
+                'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800&auto=format&fit=crop&q=80',
+            };
+          }
+          return loc;
+        });
+      }
+    }
+    return parsed;
   } catch (err) {
     console.error('Falha ao ler projeto do localStorage:', err);
     return fallback ?? null;

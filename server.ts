@@ -1,5 +1,6 @@
 import express from 'express';
 import path from 'path';
+import fs from 'fs';
 import { createServer as createViteServer } from 'vite';
 import { GoogleGenAI } from '@google/genai';
 import dotenv from 'dotenv';
@@ -9,7 +10,22 @@ dotenv.config();
 const app = express();
 const PORT = 3000;
 
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+
+// Configuração da pasta de imagens (public/imagens e imagens)
+const publicImagensDir = path.join(process.cwd(), 'public', 'imagens');
+const rootImagensDir = path.join(process.cwd(), 'imagens');
+
+if (!fs.existsSync(publicImagensDir)) {
+  fs.mkdirSync(publicImagensDir, { recursive: true });
+}
+if (!fs.existsSync(rootImagensDir)) {
+  fs.mkdirSync(rootImagensDir, { recursive: true });
+}
+
+// Servir estaticamente a pasta /imagens
+app.use('/imagens', express.static(publicImagensDir));
 
 // Lazy-initialized Gemini client helper
 let aiClient: GoogleGenAI | null = null;
@@ -366,6 +382,133 @@ Retorne estritamente um objeto JSON com a seguinte estrutura:
       error: error?.message || 'Falha ao consultar IA',
       fallback: true,
     });
+  }
+});
+
+// API de gerenciamento da pasta de imagens (/imagens)
+app.get('/api/images', (_req, res) => {
+  try {
+    if (!fs.existsSync(publicImagensDir)) {
+      return res.json({ images: [] });
+    }
+
+    const files = fs.readdirSync(publicImagensDir);
+    const validExtensions = ['.png', '.jpg', '.jpeg', '.webp', '.gif', '.svg'];
+
+    const images = files
+      .filter((file) => {
+        const ext = path.extname(file).toLowerCase();
+        return validExtensions.includes(ext) && !file.startsWith('.');
+      })
+      .map((file) => {
+        const filePath = path.join(publicImagensDir, file);
+        const stats = fs.statSync(filePath);
+        return {
+          id: file,
+          name: file,
+          url: `/imagens/${encodeURIComponent(file)}`,
+          size: stats.size,
+          createdAt: stats.birthtime ? stats.birthtime.toISOString() : stats.mtime.toISOString(),
+        };
+      })
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+    return res.json({ images });
+  } catch (error: any) {
+    console.error('Erro ao listar imagens:', error);
+    return res.status(500).json({ error: 'Erro ao listar imagens', details: error.message });
+  }
+});
+
+app.post('/api/upload-image', (req, res) => {
+  try {
+    const { name, dataUrl, category } = req.body;
+
+    if (!dataUrl || typeof dataUrl !== 'string') {
+      return res.status(400).json({ error: 'Nenhum dado de imagem fornecido' });
+    }
+
+    // Extrair mime type e base64
+    const matches = dataUrl.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+    let buffer: Buffer;
+    let extension = '.png';
+
+    if (matches && matches.length === 3) {
+      const mime = matches[1];
+      if (mime.includes('jpeg') || mime.includes('jpg')) extension = '.jpg';
+      else if (mime.includes('png')) extension = '.png';
+      else if (mime.includes('webp')) extension = '.webp';
+      else if (mime.includes('gif')) extension = '.gif';
+      else if (mime.includes('svg')) extension = '.svg';
+      buffer = Buffer.from(matches[2], 'base64');
+    } else {
+      buffer = Buffer.from(dataUrl, 'base64');
+    }
+
+    // Normalizar nome do arquivo
+    const rawName = (name || 'imagem').replace(/\.[^/.]+$/, '');
+    const cleanName = rawName
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-zA-Z0-9_-]/g, '_')
+      .toLowerCase();
+
+    const timestamp = Date.now();
+    const finalFilename = `${cleanName}_${timestamp}${extension}`;
+
+    // Gravar no diretório public/imagens
+    const targetPath = path.join(publicImagensDir, finalFilename);
+    fs.writeFileSync(targetPath, buffer);
+
+    // Copiar também para o diretório raiz imagens para conveniência
+    try {
+      const rootTargetPath = path.join(rootImagensDir, finalFilename);
+      fs.writeFileSync(rootTargetPath, buffer);
+    } catch (_copyErr) {
+      // Silencioso se der erro na cópia secundária
+    }
+
+    const imageInfo = {
+      id: finalFilename,
+      name: finalFilename,
+      url: `/imagens/${encodeURIComponent(finalFilename)}`,
+      size: buffer.length,
+      createdAt: new Date().toISOString(),
+      category: category || 'Geral',
+    };
+
+    return res.json({
+      success: true,
+      image: imageInfo,
+    });
+  } catch (error: any) {
+    console.error('Erro ao fazer upload da imagem:', error);
+    return res.status(500).json({ error: 'Falha ao salvar imagem', details: error.message });
+  }
+});
+
+app.delete('/api/images/:filename', (req, res) => {
+  try {
+    const rawFilename = req.params.filename;
+    // Prevenção de directory traversal
+    const safeFilename = path.basename(rawFilename);
+
+    const publicFilePath = path.join(publicImagensDir, safeFilename);
+    if (fs.existsSync(publicFilePath)) {
+      fs.unlinkSync(publicFilePath);
+    }
+
+    const rootFilePath = path.join(rootImagensDir, safeFilename);
+    if (fs.existsSync(rootFilePath)) {
+      try {
+        fs.unlinkSync(rootFilePath);
+      } catch (_e) {}
+    }
+
+    return res.json({ success: true, deleted: safeFilename });
+  } catch (error: any) {
+    console.error('Erro ao excluir imagem:', error);
+    return res.status(500).json({ error: 'Falha ao excluir imagem', details: error.message });
   }
 });
 

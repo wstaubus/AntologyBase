@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import { NovelProject, NavigationTab } from '../types';
+import { uploadProjectImage, readFileAsDataUrl } from '../utils/imageService';
 
 interface SidebarProps {
   project: NovelProject;
@@ -7,11 +8,13 @@ interface SidebarProps {
   onSelectTab: (tab: NavigationTab) => void;
   onOpenExport: () => void;
   onOpenSettings: () => void;
-  onOpenSync: () => void;
+  onUpdateProject?: (updated: NovelProject) => void;
+  onOpenSync?: () => void;
   onOpenShare?: () => void;
   onOpenAuthorProfile?: () => void;
   isDarkMode?: boolean;
   onToggleDarkMode?: () => void;
+  isOpen?: boolean;
   isCollapsed?: boolean;
   onToggleCollapse?: () => void;
   isMobileOpen?: boolean;
@@ -24,16 +27,64 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onSelectTab,
   onOpenExport,
   onOpenSettings,
+  onUpdateProject,
   onOpenSync,
   onOpenShare,
   onOpenAuthorProfile,
   isDarkMode = false,
   onToggleDarkMode,
+  isOpen = true,
   isCollapsed = false,
   onToggleCollapse,
   isMobileOpen = false,
   onCloseMobile,
 }) => {
+  const authorFileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [avatarNotice, setAvatarNotice] = useState<string>('');
+
+  const handleAvatarFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('Por favor, selecione um arquivo de imagem válido (PNG, JPG, WEBP, GIF).');
+      return;
+    }
+
+    try {
+      setIsUploadingAvatar(true);
+      let newAvatarUrl = '';
+      try {
+        const uploaded = await uploadProjectImage(file, 'Geral');
+        newAvatarUrl = uploaded.url;
+      } catch {
+        newAvatarUrl = await readFileAsDataUrl(file);
+      }
+
+      if (!newAvatarUrl) {
+        newAvatarUrl = await readFileAsDataUrl(file);
+      }
+
+      if (onUpdateProject) {
+        onUpdateProject({
+          ...project,
+          author: {
+            ...project.author,
+            avatarUrl: newAvatarUrl,
+          },
+        });
+      }
+      setAvatarNotice('Foto atualizada!');
+      setTimeout(() => setAvatarNotice(''), 3000);
+    } catch (err) {
+      console.error('Erro no upload de foto do autor:', err);
+    } finally {
+      setIsUploadingAvatar(false);
+      if (authorFileInputRef.current) authorFileInputRef.current.value = '';
+    }
+  };
+
   const handleTabClick = (tab: NavigationTab) => {
     onSelectTab(tab);
     if (onCloseMobile) {
@@ -55,22 +106,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
     }
   };
 
-  const handleSyncClick = () => {
-    onOpenSync();
-    if (onCloseMobile) {
-      onCloseMobile();
-    }
-  };
-
-  const handleShareClick = () => {
-    if (onOpenShare) {
-      onOpenShare();
-    }
-    if (onCloseMobile) {
-      onCloseMobile();
-    }
-  };
-
   const handleAuthorProfileClick = () => {
     if (onOpenAuthorProfile) {
       onOpenAuthorProfile();
@@ -81,6 +116,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
       onCloseMobile();
     }
   };
+
+  // Close sidebar on mobile/tablet or toggle on desktop
+  const handleCloseSidebar = () => {
+    if (onCloseMobile) {
+      onCloseMobile();
+    }
+    if (typeof window !== 'undefined' && window.innerWidth >= 1024 && onToggleCollapse) {
+      onToggleCollapse();
+    }
+  };
+
+  // Close mobile/tablet sidebar when Escape key is pressed
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isMobileOpen && onCloseMobile) {
+        onCloseMobile();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isMobileOpen, onCloseMobile]);
 
   const totalScenes = project.chapters.reduce((acc, c) => acc + c.scenes.length, 0);
 
@@ -95,166 +151,142 @@ export const Sidebar: React.FC<SidebarProps> = ({
         />
       )}
 
-      {/* Main Sidebar Navigation: Fixed off-canvas on mobile/tablet (<lg), persistent on desktop (>=lg) */}
+      {/* Main Sidebar Navigation: Fixed off-canvas on mobile/tablet (<lg), hideable on desktop (>=lg) */}
       <nav
         id="sidebar-nav"
-        className={`${
-          isCollapsed ? 'lg:w-[72px]' : 'lg:w-[260px]'
-        } w-[280px] sm:w-[300px] h-screen fixed left-0 top-0 border-r ${
+        className={`w-[260px] sm:w-[280px] h-screen fixed left-0 top-0 border-r ${
           isDarkMode
             ? 'bg-[#0b111a] border-[#1e293b] text-[#e2e8f0]'
             : 'bg-[#eaeef2] border-[#c5c6ce] text-[#171c1f]'
-        } flex flex-col py-4 z-50 select-none transition-all duration-300 ease-in-out ${
+        } flex flex-col pt-2 pb-2.5 z-50 select-none transition-transform duration-300 ease-in-out ${
           isMobileOpen
             ? 'translate-x-0 shadow-2xl'
-            : '-translate-x-full lg:translate-x-0'
+            : '-translate-x-full'
+        } ${
+          isOpen
+            ? 'lg:translate-x-0 lg:shadow-none'
+            : 'lg:-translate-x-full'
         }`}
       >
-        {/* Header Area with Toggle / Close Button & Book Cover */}
-        <div className={`mb-4 sm:mb-6 flex flex-col ${isCollapsed ? 'lg:px-2 lg:items-center px-4' : 'px-4 sm:px-5'}`}>
-          {/* Toggle Expand/Collapse & Mobile Close Row */}
-          <div
-            className={`flex items-center ${
-              isCollapsed ? 'lg:justify-center justify-between w-full mb-3' : 'justify-between w-full mb-3 sm:mb-4'
-            }`}
-          >
-            <span className={`text-[11px] font-bold uppercase tracking-wider text-[#44474d] dark:text-[#94a3b8] opacity-70 ${isCollapsed ? 'lg:hidden' : ''}`}>
-              Projeto Ativo
-            </span>
+        {/* Header Area with App Name & Minimalist Logo + Close Button */}
+        <div className="pt-4 sm:pt-5 pb-3.5 sm:pb-4 flex flex-col px-3.5 sm:px-4">
+          <div className="flex items-center justify-between gap-2 w-full">
+            {/* Minimalist Single-Color Logo + App Name matching the provided design */}
+            <div
+              id="sidebar-brand-logo"
+              className={`flex items-center gap-3 min-w-0 flex-1 pr-1 cursor-default select-none my-1 sm:my-1.5 ${
+                isCollapsed ? 'lg:justify-center' : ''
+              }`}
+            >
+              {/* Fountain Pen with Flowing Ink Wave (Single Color Vector from design) */}
+              <svg
+                viewBox="0 0 76 76"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                className={`w-10 h-10 sm:w-11 sm:h-11 shrink-0 transition-colors ${
+                  isDarkMode ? 'text-[#f8fafc]' : 'text-[#04162e]'
+                }`}
+                aria-hidden="true"
+              >
+                {/* Rotated Fountain Pen Nib */}
+                <g transform="translate(28, 41) rotate(-42)">
+                  {/* Nib Body & Collar Outline */}
+                  <path
+                    d="M 0 0 L -9 -16 Q -9.5 -20, -7 -25 L 7 -25 Q 9.5 -20, 9 -16 Z"
+                    stroke="currentColor"
+                    strokeWidth="2.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  {/* 3 Prongs at Collar */}
+                  <path
+                    d="M -7 -25 L -7 -34 L -3.2 -34 L -3.2 -25 M -1.6 -25 L -1.6 -34 L 1.6 -34 L 1.6 -25 M 3.2 -25 L 3.2 -34 L 7 -34 L 7 -25"
+                    stroke="currentColor"
+                    strokeWidth="2.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  {/* Breather Hole */}
+                  <circle cx="0" cy="-12.5" r="2.2" fill="currentColor" />
+                  {/* Slit */}
+                  <line
+                    x1="0"
+                    y1="-10.3"
+                    x2="0"
+                    y2="0"
+                    stroke="currentColor"
+                    strokeWidth="2.6"
+                    strokeLinecap="round"
+                  />
+                </g>
 
-            <div className="flex items-center gap-1">
-              {/* Desktop toggle button */}
-              {onToggleCollapse && (
-                <button
-                  id="btn-toggle-sidebar"
-                  onClick={onToggleCollapse}
-                  className={`hidden lg:flex p-1.5 rounded-lg transition-all cursor-pointer ${
-                    isDarkMode
-                      ? 'hover:bg-[#1e293b] text-[#94a3b8] hover:text-[#f8fafc]'
-                      : 'hover:bg-[#dfe3e7] text-[#44474d] hover:text-[#04162e]'
-                  }`}
-                  title={
-                    isCollapsed
-                      ? 'Expandir menu lateral (Ctrl+B)'
-                      : 'Recolher menu lateral (Ctrl+B)'
-                  }
-                >
-                  <span className="material-symbols-outlined text-[20px]">
-                    {isCollapsed ? 'dock_to_left' : 'menu_open'}
-                  </span>
-                </button>
-              )}
+                {/* Flowing Ink Wave from Nib Tip */}
+                <path
+                  d="M 28 41 C 24 46, 13 49.5, 12 55.5 C 11.5 60.5, 17 63.5, 24 63 C 31 62.5, 38 66, 46 67.5"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
 
-              {/* Mobile Close Drawer Button */}
-              {onCloseMobile && (
-                <button
-                  id="btn-close-mobile-sidebar"
-                  onClick={onCloseMobile}
-                  className={`lg:hidden p-1.5 rounded-lg transition-all cursor-pointer ${
-                    isDarkMode
-                      ? 'hover:bg-[#1e293b] text-[#94a3b8] hover:text-[#f8fafc]'
-                      : 'hover:bg-[#dfe3e7] text-[#44474d] hover:text-[#04162e]'
-                  }`}
-                  title="Fechar menu"
-                >
-                  <span className="material-symbols-outlined text-[20px]">close</span>
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* Book Cover and Title */}
-          {isCollapsed ? (
-            <>
-              {/* Collapsed desktop view */}
-              <div className="hidden lg:flex flex-col items-center gap-2 w-full">
-                <button
-                  id="btn-export-project-collapsed"
-                  onClick={handleExportClick}
-                  title={`Exportar Projeto: ${project.title}`}
-                  className={`w-10 h-10 rounded-lg ${
-                    isDarkMode
-                      ? 'bg-[#2563eb] text-[#ffffff] hover:bg-[#1d4ed8]'
-                      : 'bg-[#04162e] text-[#ffffff] hover:opacity-90'
-                  } flex items-center justify-center transition-all shadow-sm cursor-pointer`}
-                >
-                  <span className="material-symbols-outlined text-[18px]">file_download</span>
-                </button>
-              </div>
-
-              {/* Expanded on mobile drawer even if collapsed on desktop */}
-              <div className="flex lg:hidden flex-col gap-3">
-                <div className="min-w-0">
-                  <h2
-                    className={`font-headline-md text-headline-md ${
-                      isDarkMode ? 'text-[#f8fafc]' : 'text-[#04162e]'
-                    } font-bold text-base leading-tight truncate`}
-                    title={project.title}
-                  >
-                    {project.title}
-                  </h2>
-                  <span
-                    className={`font-interface-sm text-interface-sm ${
-                      isDarkMode ? 'text-[#cbd5e1]' : 'text-[#334155]'
-                    } text-xs block mt-1 truncate font-medium`}
-                  >
-                    {project.subtitle || `Fase de ${project.phase}`}
-                  </span>
-                </div>
-
-                <button
-                  onClick={handleExportClick}
-                  className={`w-full ${
-                    isDarkMode
-                      ? 'bg-[#2563eb] text-[#ffffff] hover:bg-[#1d4ed8]'
-                      : 'bg-[#04162e] text-[#ffffff] hover:opacity-90'
-                  } font-interface-sm text-interface-sm text-xs font-semibold py-2 px-4 rounded active:scale-[0.98] transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer`}
-                >
-                  <span className="material-symbols-outlined text-[16px]">file_download</span>
-                  Exportar Projeto
-                </button>
-              </div>
-            </>
-          ) : (
-            <div className="flex flex-col gap-3">
-              <div className="min-w-0">
+              {/* Text Layout: "Escreve Aí" on top and "AUTOR" below in typography */}
+              <div
+                id="sidebar-brand-text"
+                className={`flex flex-col justify-center min-w-0 ${
+                  isCollapsed ? 'lg:hidden' : ''
+                }`}
+              >
                 <h2
-                  id="sidebar-book-title"
-                  className={`font-headline-md text-headline-md ${
+                  id="sidebar-app-name"
+                  className={`font-headline-md text-headline-md font-extrabold tracking-tight text-[18px] sm:text-[19px] leading-tight truncate ${
                     isDarkMode ? 'text-[#f8fafc]' : 'text-[#04162e]'
-                  } font-bold text-base lg:text-lg leading-tight truncate`}
-                  title={project.title}
+                  }`}
                 >
-                  {project.title}
+                  Escreve Aí
                 </h2>
                 <span
-                  id="sidebar-book-phase"
-                  className={`font-interface-sm text-interface-sm ${
-                    isDarkMode ? 'text-[#cbd5e1]' : 'text-[#334155]'
-                  } text-xs block mt-1 truncate font-medium`}
+                  id="sidebar-app-tagline"
+                  className={`font-interface-sm text-interface-sm font-bold text-[10px] sm:text-[11px] tracking-[0.24em] uppercase leading-none mt-0.5 ${
+                    isDarkMode ? 'text-[#cbd5e1]' : 'text-[#04162e]'
+                  }`}
                 >
-                  {project.subtitle || `Fase de ${project.phase}`}
+                  AUTOR
                 </span>
               </div>
-
-              <button
-                id="btn-export-project"
-                onClick={handleExportClick}
-                className={`w-full ${
-                  isDarkMode
-                    ? 'bg-[#2563eb] text-[#ffffff] hover:bg-[#1d4ed8]'
-                    : 'bg-[#04162e] text-[#ffffff] hover:opacity-90'
-                } font-interface-sm text-interface-sm text-xs font-semibold py-2 px-4 rounded active:scale-[0.98] transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer`}
-              >
-                <span className="material-symbols-outlined text-[16px]">file_download</span>
-                Exportar Projeto
-              </button>
             </div>
-          )}
+
+            {/* Hide / Close Sidebar Button */}
+            <button
+              id="btn-hide-sidebar"
+              onClick={handleCloseSidebar}
+              className={`p-1 -mr-1 rounded-lg transition-all cursor-pointer shrink-0 ${
+                isDarkMode
+                  ? 'hover:bg-[#1e293b] text-[#94a3b8] hover:text-[#f8fafc]'
+                  : 'hover:bg-[#dfe3e7] text-[#334155] hover:text-[#04162e]'
+              }`}
+              title="Fechar menu lateral"
+              aria-label="Fechar menu lateral"
+            >
+              <span className="material-symbols-outlined text-[19px] lg:hidden">close</span>
+              <span className="material-symbols-outlined text-[19px] hidden lg:inline">dock_to_left</span>
+            </button>
+          </div>
         </div>
 
+        {/* Divider line between App Name and Painel */}
+        <div
+          id="sidebar-header-divider"
+          className={`border-b transition-colors mb-3.5 sm:mb-4 ${
+            isCollapsed ? 'mx-2.5' : 'mx-3.5 sm:mx-4'
+          } ${
+            isDarkMode ? 'border-[#1e293b]' : 'border-[#c5c6ce]'
+          }`}
+          role="separator"
+        />
+
         {/* Main Navigation Tabs */}
-        <ul className={`flex flex-col flex-grow w-full space-y-1 overflow-y-auto ${isCollapsed ? 'lg:px-2 px-3' : 'px-3 sm:px-0'}`}>
+        <ul className="flex flex-col flex-grow w-full space-y-0.5 sm:space-y-1 overflow-y-auto px-2.5 sm:px-0 pt-1.5 sm:pt-2">
           {/* Painel / Dashboard */}
           <li>
             <button
@@ -263,28 +295,28 @@ export const Sidebar: React.FC<SidebarProps> = ({
               title="Painel de Controle (Dashboard)"
               className={`w-full flex items-center transition-all cursor-pointer ${
                 isCollapsed
-                  ? `lg:justify-center lg:h-11 lg:w-11 lg:mx-auto lg:rounded-xl gap-3 px-4 py-2.5 sm:px-5 sm:py-3 text-left rounded-lg ${
+                  ? `lg:justify-center lg:h-10 lg:w-10 lg:mx-auto lg:rounded-xl gap-2.5 px-3 py-2 text-left rounded-lg ${
                       activeTab === 'dashboard'
                         ? isDarkMode
                           ? 'bg-[#2563eb] text-white shadow-sm'
                           : 'bg-[#04162e] text-white shadow-sm'
                         : isDarkMode
                         ? 'text-[#cbd5e1] hover:bg-[#131b26] hover:text-[#f8fafc]'
-                        : 'text-[#1e293b] hover:bg-[#dfe3e7] hover:text-[#04162e]'
+                        : 'text-[#334155] hover:bg-[#dce3ea] hover:text-[#04162e]'
                     }`
-                  : `gap-3 px-4 py-2.5 sm:px-5 sm:py-3 text-left rounded-lg sm:rounded-none ${
+                  : `gap-2.5 px-3 py-2 sm:px-3.5 sm:py-2.5 text-left rounded-lg sm:rounded-none ${
                       activeTab === 'dashboard'
                         ? isDarkMode
                           ? 'text-[#60a5fa] sm:border-l-2 sm:border-[#60a5fa] bg-[#16202f] font-bold sm:shadow-[inset_2px_0_0_#60a5fa]'
-                          : 'text-[#04162e] sm:border-l-2 sm:border-[#04162e] bg-[#e4e9ed] font-bold opacity-100 sm:shadow-[inset_2px_0_0_#04162e]'
+                          : 'text-[#04162e] sm:border-l-[3px] sm:border-[#04162e] bg-white font-bold opacity-100 sm:shadow-[0_1px_3px_rgba(4,22,46,0.08)]'
                         : isDarkMode
                         ? 'text-[#cbd5e1] hover:bg-[#131b26] hover:text-[#f8fafc] font-medium'
-                        : 'text-[#1e293b] hover:bg-[#dfe3e7] hover:text-[#04162e] font-medium'
+                        : 'text-[#334155] hover:bg-[#dce3ea] hover:text-[#04162e] font-medium'
                     }`
               }`}
             >
               <span
-                className="material-symbols-outlined text-[20px]"
+                className="material-symbols-outlined text-[19px] sm:text-[20px]"
                 style={{
                   fontVariationSettings: activeTab === 'dashboard' ? "'FILL' 1" : "'FILL' 0",
                 }}
@@ -297,37 +329,37 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </button>
           </li>
 
-          {/* Estrutura & Storyboard */}
+          {/* Storyboard */}
           <li>
             <button
               id="nav-tab-storyboard"
               onClick={() => handleTabClick('storyboard')}
-              title={`Estrutura & Storyboard (${project.chapters.length} cap., ${totalScenes} cenas)`}
+              title={`Storyboard (${project.chapters.length} cap., ${totalScenes} cenas)`}
               className={`w-full flex items-center transition-all cursor-pointer relative ${
                 isCollapsed
-                  ? `lg:justify-center lg:h-11 lg:w-11 lg:mx-auto lg:rounded-xl gap-3 px-4 py-2.5 sm:px-5 sm:py-3 text-left rounded-lg ${
+                  ? `lg:justify-center lg:h-10 lg:w-10 lg:mx-auto lg:rounded-xl gap-2.5 px-3 py-2 text-left rounded-lg ${
                       activeTab === 'storyboard'
                         ? isDarkMode
                           ? 'bg-[#2563eb] text-white shadow-sm'
                           : 'bg-[#04162e] text-white shadow-sm'
                         : isDarkMode
                         ? 'text-[#cbd5e1] hover:bg-[#131b26] hover:text-[#f8fafc]'
-                        : 'text-[#1e293b] hover:bg-[#dfe3e7] hover:text-[#04162e]'
+                        : 'text-[#334155] hover:bg-[#dce3ea] hover:text-[#04162e]'
                     }`
-                  : `gap-3 px-4 py-2.5 sm:px-5 sm:py-3 text-left rounded-lg sm:rounded-none ${
+                  : `gap-2.5 px-3 py-2 sm:px-3.5 sm:py-2.5 text-left rounded-lg sm:rounded-none ${
                       activeTab === 'storyboard'
                         ? isDarkMode
                           ? 'text-[#60a5fa] sm:border-l-2 sm:border-[#60a5fa] bg-[#16202f] font-bold sm:shadow-[inset_2px_0_0_#60a5fa]'
-                          : 'text-[#04162e] sm:border-l-2 sm:border-[#04162e] bg-[#e4e9ed] font-bold opacity-100 sm:shadow-[inset_2px_0_0_#04162e]'
+                          : 'text-[#04162e] sm:border-l-[3px] sm:border-[#04162e] bg-white font-bold opacity-100 sm:shadow-[0_1px_3px_rgba(4,22,46,0.08)]'
                         : isDarkMode
                         ? 'text-[#cbd5e1] hover:bg-[#131b26] hover:text-[#f8fafc] font-medium'
-                        : 'text-[#1e293b] hover:bg-[#dfe3e7] hover:text-[#04162e] font-medium'
+                        : 'text-[#334155] hover:bg-[#dce3ea] hover:text-[#04162e] font-medium'
                     }`
               }`}
             >
               <div className="relative flex items-center justify-center">
                 <span
-                  className="material-symbols-outlined text-[20px]"
+                  className="material-symbols-outlined text-[19px] sm:text-[20px]"
                   style={{
                     fontVariationSettings: activeTab === 'storyboard' ? "'FILL' 1" : "'FILL' 0",
                   }}
@@ -341,11 +373,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 )}
               </div>
               <div className={`flex items-center justify-between w-full ${isCollapsed ? 'lg:hidden' : ''}`}>
-                <span className="font-interface-sm text-interface-sm">Estrutura & Storyboard</span>
+                <span className="font-interface-sm text-interface-sm">Storyboard</span>
                 <span
-                  className={`text-[11px] font-bold ${
-                    isDarkMode ? 'bg-[#1e293b] text-[#cbd5e1]' : 'bg-[#cbd5e1] text-[#0f172a]'
-                  } px-2 py-0.5 rounded-full`}
+                  className={`text-[10px] sm:text-[11px] font-bold ${
+                    isDarkMode ? 'bg-[#1e293b] text-[#cbd5e1]' : 'bg-[#dce3ea] text-[#04162e]'
+                  } px-1.5 sm:px-2 py-0.5 rounded-full`}
                 >
                   {project.chapters.length} cap.
                 </span>
@@ -361,29 +393,29 @@ export const Sidebar: React.FC<SidebarProps> = ({
               title={`Personagens (${project.characters.length})`}
               className={`w-full flex items-center transition-all cursor-pointer relative ${
                 isCollapsed
-                  ? `lg:justify-center lg:h-11 lg:w-11 lg:mx-auto lg:rounded-xl gap-3 px-4 py-2.5 sm:px-5 sm:py-3 text-left rounded-lg ${
+                  ? `lg:justify-center lg:h-10 lg:w-10 lg:mx-auto lg:rounded-xl gap-2.5 px-3 py-2 text-left rounded-lg ${
                       activeTab === 'characters'
                         ? isDarkMode
                           ? 'bg-[#2563eb] text-white shadow-sm'
                           : 'bg-[#04162e] text-white shadow-sm'
                         : isDarkMode
                         ? 'text-[#cbd5e1] hover:bg-[#131b26] hover:text-[#f8fafc]'
-                        : 'text-[#1e293b] hover:bg-[#dfe3e7] hover:text-[#04162e]'
+                        : 'text-[#334155] hover:bg-[#dce3ea] hover:text-[#04162e]'
                     }`
-                  : `gap-3 px-4 py-2.5 sm:px-5 sm:py-3 text-left rounded-lg sm:rounded-none ${
+                  : `gap-2.5 px-3 py-2 sm:px-3.5 sm:py-2.5 text-left rounded-lg sm:rounded-none ${
                       activeTab === 'characters'
                         ? isDarkMode
                           ? 'text-[#60a5fa] sm:border-l-2 sm:border-[#60a5fa] bg-[#16202f] font-bold sm:shadow-[inset_2px_0_0_#60a5fa]'
-                          : 'text-[#04162e] sm:border-l-2 sm:border-[#04162e] bg-[#e4e9ed] font-bold opacity-100 sm:shadow-[inset_2px_0_0_#04162e]'
+                          : 'text-[#04162e] sm:border-l-[3px] sm:border-[#04162e] bg-white font-bold opacity-100 sm:shadow-[0_1px_3px_rgba(4,22,46,0.08)]'
                         : isDarkMode
                         ? 'text-[#cbd5e1] hover:bg-[#131b26] hover:text-[#f8fafc] font-medium'
-                        : 'text-[#1e293b] hover:bg-[#dfe3e7] hover:text-[#04162e] font-medium'
+                        : 'text-[#334155] hover:bg-[#dce3ea] hover:text-[#04162e] font-medium'
                     }`
               }`}
             >
               <div className="relative flex items-center justify-center">
                 <span
-                  className="material-symbols-outlined text-[20px]"
+                  className="material-symbols-outlined text-[19px] sm:text-[20px]"
                   style={{
                     fontVariationSettings: activeTab === 'characters' ? "'FILL' 1" : "'FILL' 0",
                   }}
@@ -399,9 +431,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <div className={`flex items-center justify-between w-full ${isCollapsed ? 'lg:hidden' : ''}`}>
                 <span className="font-interface-sm text-interface-sm">Personagens</span>
                 <span
-                  className={`text-[11px] font-bold ${
-                    isDarkMode ? 'bg-[#1e293b] text-[#cbd5e1]' : 'bg-[#cbd5e1] text-[#0f172a]'
-                  } px-2 py-0.5 rounded-full`}
+                  className={`text-[10px] sm:text-[11px] font-bold ${
+                    isDarkMode ? 'bg-[#1e293b] text-[#cbd5e1]' : 'bg-[#dce3ea] text-[#04162e]'
+                  } px-1.5 sm:px-2 py-0.5 rounded-full`}
                 >
                   {project.characters.length}
                 </span>
@@ -409,36 +441,36 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </button>
           </li>
 
-          {/* Construção de Mundo */}
+          {/* Cenários */}
           <li>
             <button
               id="nav-tab-world"
               onClick={() => handleTabClick('world')}
-              title="Construção de Mundo (Worldbuilding)"
+              title="Cenários"
               className={`w-full flex items-center transition-all cursor-pointer ${
                 isCollapsed
-                  ? `lg:justify-center lg:h-11 lg:w-11 lg:mx-auto lg:rounded-xl gap-3 px-4 py-2.5 sm:px-5 sm:py-3 text-left rounded-lg ${
+                  ? `lg:justify-center lg:h-10 lg:w-10 lg:mx-auto lg:rounded-xl gap-2.5 px-3 py-2 text-left rounded-lg ${
                       activeTab === 'world'
                         ? isDarkMode
                           ? 'bg-[#2563eb] text-white shadow-sm'
                           : 'bg-[#04162e] text-white shadow-sm'
                         : isDarkMode
                         ? 'text-[#cbd5e1] hover:bg-[#131b26] hover:text-[#f8fafc]'
-                        : 'text-[#1e293b] hover:bg-[#dfe3e7] hover:text-[#04162e]'
+                        : 'text-[#334155] hover:bg-[#dce3ea] hover:text-[#04162e]'
                     }`
-                  : `gap-3 px-4 py-2.5 sm:px-5 sm:py-3 text-left rounded-lg sm:rounded-none ${
+                  : `gap-2.5 px-3 py-2 sm:px-3.5 sm:py-2.5 text-left rounded-lg sm:rounded-none ${
                       activeTab === 'world'
                         ? isDarkMode
                           ? 'text-[#60a5fa] sm:border-l-2 sm:border-[#60a5fa] bg-[#16202f] font-bold sm:shadow-[inset_2px_0_0_#60a5fa]'
-                          : 'text-[#04162e] sm:border-l-2 sm:border-[#04162e] bg-[#e4e9ed] font-bold opacity-100 sm:shadow-[inset_2px_0_0_#04162e]'
+                          : 'text-[#04162e] sm:border-l-[3px] sm:border-[#04162e] bg-white font-bold opacity-100 sm:shadow-[0_1px_3px_rgba(4,22,46,0.08)]'
                         : isDarkMode
                         ? 'text-[#cbd5e1] hover:bg-[#131b26] hover:text-[#f8fafc] font-medium'
-                        : 'text-[#1e293b] hover:bg-[#dfe3e7] hover:text-[#04162e] font-medium'
+                        : 'text-[#334155] hover:bg-[#dce3ea] hover:text-[#04162e] font-medium'
                     }`
               }`}
             >
               <span
-                className="material-symbols-outlined text-[20px]"
+                className="material-symbols-outlined text-[19px] sm:text-[20px]"
                 style={{
                   fontVariationSettings: activeTab === 'world' ? "'FILL' 1" : "'FILL' 0",
                 }}
@@ -446,41 +478,41 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 public
               </span>
               <span className={`font-interface-sm text-interface-sm ${isCollapsed ? 'lg:hidden' : ''}`}>
-                Construção de Mundo
+                Cenários
               </span>
             </button>
           </li>
 
-          {/* Estúdio de Escrita */}
+          {/* Escrever */}
           <li>
             <button
               id="nav-tab-writing"
               onClick={() => handleTabClick('writing')}
-              title="Estúdio de Escrita (Editor)"
+              title="Escrever (Editor de Texto)"
               className={`w-full flex items-center transition-all cursor-pointer ${
                 isCollapsed
-                  ? `lg:justify-center lg:h-11 lg:w-11 lg:mx-auto lg:rounded-xl gap-3 px-4 py-2.5 sm:px-5 sm:py-3 text-left rounded-lg ${
+                  ? `lg:justify-center lg:h-10 lg:w-10 lg:mx-auto lg:rounded-xl gap-2.5 px-3 py-2 text-left rounded-lg ${
                       activeTab === 'writing'
                         ? isDarkMode
                           ? 'bg-[#2563eb] text-white shadow-sm'
                           : 'bg-[#04162e] text-white shadow-sm'
                         : isDarkMode
                         ? 'text-[#cbd5e1] hover:bg-[#131b26] hover:text-[#f8fafc]'
-                        : 'text-[#1e293b] hover:bg-[#dfe3e7] hover:text-[#04162e]'
+                        : 'text-[#334155] hover:bg-[#dce3ea] hover:text-[#04162e]'
                     }`
-                  : `gap-3 px-4 py-2.5 sm:px-5 sm:py-3 text-left rounded-lg sm:rounded-none ${
+                  : `gap-2.5 px-3 py-2 sm:px-3.5 sm:py-2.5 text-left rounded-lg sm:rounded-none ${
                       activeTab === 'writing'
                         ? isDarkMode
                           ? 'text-[#60a5fa] sm:border-l-2 sm:border-[#60a5fa] bg-[#16202f] font-bold sm:shadow-[inset_2px_0_0_#60a5fa]'
-                          : 'text-[#04162e] sm:border-l-2 sm:border-[#04162e] bg-[#e4e9ed] font-bold opacity-100 sm:shadow-[inset_2px_0_0_#04162e]'
+                          : 'text-[#04162e] sm:border-l-[3px] sm:border-[#04162e] bg-white font-bold opacity-100 sm:shadow-[0_1px_3px_rgba(4,22,46,0.08)]'
                         : isDarkMode
                         ? 'text-[#cbd5e1] hover:bg-[#131b26] hover:text-[#f8fafc] font-medium'
-                        : 'text-[#1e293b] hover:bg-[#dfe3e7] hover:text-[#04162e] font-medium'
+                        : 'text-[#334155] hover:bg-[#dce3ea] hover:text-[#04162e] font-medium'
                     }`
               }`}
             >
               <span
-                className="material-symbols-outlined text-[20px]"
+                className="material-symbols-outlined text-[19px] sm:text-[20px]"
                 style={{
                   fontVariationSettings: activeTab === 'writing' ? "'FILL' 1" : "'FILL' 0",
                 }}
@@ -488,7 +520,49 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 edit_note
               </span>
               <span className={`font-interface-sm text-interface-sm ${isCollapsed ? 'lg:hidden' : ''}`}>
-                Estúdio de Escrita
+                Escrever
+              </span>
+            </button>
+          </li>
+
+          {/* Imagens (Pasta de Imagens) */}
+          <li>
+            <button
+              id="nav-tab-images"
+              onClick={() => handleTabClick('images')}
+              title="Pasta de Imagens (/imagens)"
+              className={`w-full flex items-center transition-all cursor-pointer ${
+                isCollapsed
+                  ? `lg:justify-center lg:h-10 lg:w-10 lg:mx-auto lg:rounded-xl gap-2.5 px-3 py-2 text-left rounded-lg ${
+                      activeTab === 'images'
+                        ? isDarkMode
+                          ? 'bg-[#2563eb] text-white shadow-sm'
+                          : 'bg-[#04162e] text-white shadow-sm'
+                        : isDarkMode
+                        ? 'text-[#cbd5e1] hover:bg-[#131b26] hover:text-[#f8fafc]'
+                        : 'text-[#334155] hover:bg-[#dce3ea] hover:text-[#04162e]'
+                    }`
+                  : `gap-2.5 px-3 py-2 sm:px-3.5 sm:py-2.5 text-left rounded-lg sm:rounded-none ${
+                      activeTab === 'images'
+                        ? isDarkMode
+                          ? 'text-[#60a5fa] sm:border-l-2 sm:border-[#60a5fa] bg-[#16202f] font-bold sm:shadow-[inset_2px_0_0_#60a5fa]'
+                          : 'text-[#04162e] sm:border-l-[3px] sm:border-[#04162e] bg-white font-bold opacity-100 sm:shadow-[0_1px_3px_rgba(4,22,46,0.08)]'
+                        : isDarkMode
+                        ? 'text-[#cbd5e1] hover:bg-[#131b26] hover:text-[#f8fafc] font-medium'
+                        : 'text-[#334155] hover:bg-[#dce3ea] hover:text-[#04162e] font-medium'
+                    }`
+              }`}
+            >
+              <span
+                className="material-symbols-outlined text-[19px] sm:text-[20px]"
+                style={{
+                  fontVariationSettings: activeTab === 'images' ? "'FILL' 1" : "'FILL' 0",
+                }}
+              >
+                photo_library
+              </span>
+              <span className={`font-interface-sm text-interface-sm ${isCollapsed ? 'lg:hidden' : ''}`}>
+                Imagens
               </span>
             </button>
           </li>
@@ -497,137 +571,45 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* Footer Navigation Area */}
         <ul
           className={`flex flex-col w-full mt-auto mb-0 border-t ${
-            isDarkMode ? 'border-[#1e293b]' : 'border-[#cbd5e1]'
-          } pt-2 space-y-1 ${isCollapsed ? 'lg:px-2 lg:items-center px-3' : 'px-3 sm:px-0'}`}
+            isDarkMode ? 'border-[#1e293b]' : 'border-[#c5c6ce]'
+          } pt-1.5 sm:pt-2 space-y-0.5 sm:space-y-1 ${isCollapsed ? 'lg:px-2 lg:items-center px-2.5' : 'px-2.5 sm:px-0'}`}
         >
-          {onToggleDarkMode && (
-            <li>
-              <button
-                id="sidebar-btn-theme-toggle"
-                onClick={onToggleDarkMode}
-                title={isDarkMode ? 'Alternar para Modo Diurno' : 'Alternar para Modo Noturno'}
-                className={`flex items-center transition-colors cursor-pointer ${
-                  isCollapsed
-                    ? `lg:justify-center lg:h-10 lg:w-10 lg:rounded-xl w-full gap-3 px-4 py-2 text-left rounded-lg ${
-                        isDarkMode
-                          ? 'text-amber-300 hover:bg-[#131b26]'
-                          : 'text-[#1e293b] hover:bg-[#dfe3e7] hover:text-[#04162e]'
-                      }`
-                    : `w-full gap-3 px-4 py-2 sm:px-5 sm:py-2 text-left rounded-lg sm:rounded-none ${
-                        isDarkMode
-                          ? 'text-amber-300 hover:bg-[#131b26]'
-                          : 'text-[#1e293b] hover:bg-[#dfe3e7] hover:text-[#04162e]'
-                      }`
-                }`}
-              >
-                <span className="material-symbols-outlined text-[20px]">
-                  {isDarkMode ? 'light_mode' : 'dark_mode'}
-                </span>
-                <span className={`font-interface-sm text-interface-sm ${isCollapsed ? 'lg:hidden' : ''}`}>
-                  {isDarkMode ? 'Modo Diurno' : 'Modo Noturno'}
-                </span>
-              </button>
-            </li>
-          )}
-
-          {onOpenShare && (
-            <li>
-              <button
-                id="nav-btn-share"
-                onClick={handleShareClick}
-                title="Compartilhar Projeto"
-                className={`flex items-center transition-colors cursor-pointer ${
-                  isCollapsed
-                    ? `lg:justify-center lg:h-10 lg:w-10 lg:rounded-xl w-full gap-3 px-4 py-2 text-left rounded-lg ${
-                        isDarkMode
-                          ? 'text-[#cbd5e1] hover:bg-[#131b26] hover:text-[#f8fafc]'
-                          : 'text-[#1e293b] hover:bg-[#dfe3e7] hover:text-[#04162e]'
-                      }`
-                    : `w-full gap-3 px-4 py-2 sm:px-5 sm:py-2 text-left rounded-lg sm:rounded-none ${
-                        isDarkMode
-                          ? 'text-[#cbd5e1] hover:bg-[#131b26] hover:text-[#f8fafc]'
-                          : 'text-[#1e293b] hover:bg-[#dfe3e7] hover:text-[#04162e]'
-                      }`
-                }`}
-              >
-                <span className="material-symbols-outlined text-[20px]">share</span>
-                <span className={`font-interface-sm text-interface-sm ${isCollapsed ? 'lg:hidden' : ''}`}>
-                  Compartilhar
-                </span>
-              </button>
-            </li>
-          )}
-
+          {/* Exportar Projeto (com Compartilhar Integrado) */}
           <li>
             <button
-              id="nav-btn-settings"
-              onClick={handleSettingsClick}
-              title="Configurações do Projeto"
+              id="nav-btn-export"
+              onClick={handleExportClick}
+              title="Exportar ou Compartilhar Projeto"
               className={`flex items-center transition-colors cursor-pointer ${
                 isCollapsed
-                  ? `lg:justify-center lg:h-10 lg:w-10 lg:rounded-xl w-full gap-3 px-4 py-2 text-left rounded-lg ${
+                  ? `lg:justify-center lg:h-10 lg:w-10 lg:rounded-xl w-full gap-2.5 px-3 py-2 text-left rounded-lg ${
                       isDarkMode
                         ? 'text-[#cbd5e1] hover:bg-[#131b26] hover:text-[#f8fafc]'
-                        : 'text-[#1e293b] hover:bg-[#dfe3e7] hover:text-[#04162e]'
+                        : 'text-[#334155] hover:bg-[#dce3ea] hover:text-[#04162e]'
                     }`
-                  : `w-full gap-3 px-4 py-2 sm:px-5 sm:py-2 text-left rounded-lg sm:rounded-none ${
+                  : `w-full gap-2.5 px-3 py-2 sm:px-3.5 sm:py-2.5 text-left rounded-lg sm:rounded-none ${
                       isDarkMode
                         ? 'text-[#cbd5e1] hover:bg-[#131b26] hover:text-[#f8fafc]'
-                        : 'text-[#1e293b] hover:bg-[#dfe3e7] hover:text-[#04162e]'
+                        : 'text-[#334155] hover:bg-[#dce3ea] hover:text-[#04162e]'
                     }`
               }`}
             >
-              <span className="material-symbols-outlined text-[20px]">settings</span>
+              <span className="material-symbols-outlined text-[19px] sm:text-[20px]">file_download</span>
               <span className={`font-interface-sm text-interface-sm ${isCollapsed ? 'lg:hidden' : ''}`}>
-                Configurações
+                Exportar Projeto
               </span>
-            </button>
-          </li>
-
-          <li>
-            <button
-              id="nav-btn-sync"
-              onClick={handleSyncClick}
-              title="Sincronização & Backup Local"
-              className={`flex items-center transition-colors cursor-pointer relative ${
-                isCollapsed
-                  ? `lg:justify-center lg:h-10 lg:w-10 lg:rounded-xl w-full gap-3 px-4 py-2 text-left rounded-lg ${
-                      isDarkMode
-                        ? 'text-[#cbd5e1] hover:bg-[#131b26] hover:text-[#f8fafc]'
-                        : 'text-[#1e293b] hover:bg-[#dfe3e7] hover:text-[#04162e]'
-                    }`
-                  : `w-full gap-3 px-4 py-2 sm:px-5 sm:py-2 text-left rounded-lg sm:rounded-none ${
-                      isDarkMode
-                        ? 'text-[#cbd5e1] hover:bg-[#131b26] hover:text-[#f8fafc]'
-                        : 'text-[#1e293b] hover:bg-[#dfe3e7] hover:text-[#04162e]'
-                    }`
-              }`}
-            >
-              <div className="relative flex items-center justify-center">
-                <span className="material-symbols-outlined text-[20px]">cloud_sync</span>
-                {isCollapsed && (
-                  <span
-                    className="hidden lg:block absolute -top-1 -right-1 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-[#0b111a]"
-                    title="Sincronizado"
-                  />
-                )}
-              </div>
-              <div className={`flex items-center justify-between w-full ${isCollapsed ? 'lg:hidden' : ''}`}>
-                <span className="font-interface-sm text-interface-sm">Sincronizar</span>
-                <span className="w-2 h-2 rounded-full bg-emerald-500" title="Sincronizado" />
-              </div>
             </button>
           </li>
 
           {/* Expand button at bottom when collapsed on desktop */}
           {isCollapsed && onToggleCollapse && (
-            <li className="hidden lg:flex pt-2 border-t border-[#cbd5e1] dark:border-[#1e293b] w-full justify-center">
+            <li className="hidden lg:flex pt-1.5 border-t border-[#c5c6ce] dark:border-[#1e293b] w-full justify-center">
               <button
                 onClick={onToggleCollapse}
-                className={`p-2 rounded-xl transition-all cursor-pointer ${
+                className={`p-1.5 rounded-xl transition-all cursor-pointer ${
                   isDarkMode
                     ? 'hover:bg-[#1e293b] text-[#cbd5e1] hover:text-[#f8fafc]'
-                    : 'hover:bg-[#dfe3e7] text-[#1e293b] hover:text-[#04162e]'
+                    : 'hover:bg-[#dce3ea] text-[#334155] hover:text-[#04162e]'
                 }`}
                 title="Expandir menu lateral (Ctrl+B)"
               >
@@ -637,52 +619,102 @@ export const Sidebar: React.FC<SidebarProps> = ({
           )}
         </ul>
 
+        {/* Hidden File Input for Author Avatar Upload */}
+        <input
+          type="file"
+          ref={authorFileInputRef}
+          accept="image/*"
+          className="hidden"
+          onChange={handleAvatarFileChange}
+        />
+
         {/* Author Avatar & Profile Row */}
         <div
-          className={`mt-2 pt-2.5 border-t ${
-            isDarkMode ? 'border-[#1e293b]' : 'border-[#cbd5e1]'
-          } ${isCollapsed ? 'lg:px-2 px-3' : 'px-3 sm:px-4'}`}
+          className={`mt-1.5 pt-2 border-t ${
+            isDarkMode ? 'border-[#1e293b]' : 'border-[#c5c6ce]'
+          } ${isCollapsed ? 'lg:px-2 px-2.5' : 'px-2.5 sm:px-3.5'}`}
         >
-          <button
+          {avatarNotice && (
+            <div className="mb-1 px-2 py-0.5 text-center text-[10px] font-bold bg-emerald-500 text-white rounded animate-fade-in">
+              {avatarNotice}
+            </div>
+          )}
+
+          <div
             id="sidebar-author-profile"
-            onClick={handleAuthorProfileClick}
-            title={`${project.author.name} (Autor) - Abrir Perfil do Autor`}
-            className={`w-full flex items-center transition-all cursor-pointer group ${
+            className={`w-full flex items-center transition-all group ${
               isCollapsed
-                ? 'lg:justify-center lg:p-1 lg:rounded-xl gap-3 p-2 rounded-xl text-left hover:bg-[#dfe3e7] dark:hover:bg-[#16202f]'
-                : 'gap-3 p-2 rounded-xl text-left hover:bg-[#dfe3e7] dark:hover:bg-[#16202f]'
+                ? 'lg:justify-center lg:p-1 lg:rounded-xl gap-2 p-1.5 rounded-xl hover:bg-[#dce3ea] dark:hover:bg-[#16202f]'
+                : 'gap-2.5 p-1.5 sm:p-2 rounded-xl hover:bg-[#dce3ea] dark:hover:bg-[#16202f]'
             }`}
           >
-            <div className="relative shrink-0 flex items-center justify-center">
-              <img
-                id="sidebar-author-avatar"
-                src={project.author.avatarUrl}
-                alt={project.author.name}
-                className="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover border border-[#cbd5e1] dark:border-[#334155] group-hover:ring-2 group-hover:ring-[#2563eb] transition-all"
-              />
+            {/* Clickable Avatar to Upload File */}
+            <div
+              className="relative shrink-0 flex items-center justify-center cursor-pointer group/avatar"
+              onClick={(e) => {
+                e.stopPropagation();
+                authorFileInputRef.current?.click();
+              }}
+              title="Fazer upload de foto do autor (Clique para carregar imagem do computador)"
+            >
+              {project.author.avatarUrl?.trim() ? (
+                <img
+                  id="sidebar-author-avatar"
+                  src={project.author.avatarUrl.trim()}
+                  alt={project.author.name}
+                  className="w-8 h-8 sm:w-8.5 sm:h-8.5 rounded-full object-cover border border-[#c5c6ce] dark:border-[#334155] group-hover/avatar:ring-2 group-hover/avatar:ring-[#2563eb] transition-all"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src =
+                      'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&auto=format&fit=crop&q=80';
+                  }}
+                />
+              ) : (
+                <div
+                  id="sidebar-author-avatar-placeholder"
+                  className="w-8 h-8 sm:w-8.5 sm:h-8.5 rounded-full bg-[#dce3ea] dark:bg-[#1e293b] border border-[#c5c6ce] dark:border-[#334155] flex items-center justify-center text-[#04162e] dark:text-[#f8fafc] font-bold text-xs"
+                >
+                  {project.author.name?.charAt(0)?.toUpperCase() || 'A'}
+                </div>
+              )}
+              <div className="absolute inset-0 rounded-full bg-black/45 opacity-0 group-hover/avatar:opacity-100 flex items-center justify-center transition-opacity text-white">
+                <span className="material-symbols-outlined text-[15px]">
+                  {isUploadingAvatar ? 'refresh' : 'photo_camera'}
+                </span>
+              </div>
               <span
-                className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full ring-2 ring-white dark:ring-[#0b111a]"
+                className="absolute bottom-0 right-0 w-2 h-2 sm:w-2.5 sm:h-2.5 bg-emerald-500 rounded-full ring-2 ring-white dark:ring-[#0b111a]"
                 title="Online"
               />
             </div>
 
-            <div className={`min-w-0 flex-1 ${isCollapsed ? 'lg:hidden' : ''}`}>
-              <p className="text-xs font-bold text-[#0f172a] dark:text-[#f8fafc] truncate leading-tight group-hover:text-[#2563eb] dark:group-hover:text-[#60a5fa] transition-colors">
+            {/* Author details - clicking opens author profile */}
+            <div
+              onClick={handleAuthorProfileClick}
+              className={`min-w-0 flex-1 cursor-pointer ${isCollapsed ? 'lg:hidden' : ''}`}
+            >
+              <p className="text-xs font-bold text-[#04162e] dark:text-[#f8fafc] truncate leading-tight group-hover:text-[#2563eb] dark:group-hover:text-[#60a5fa] transition-colors">
                 {project.author.name}
               </p>
-              <p className="text-[11px] font-medium text-[#334155] dark:text-[#cbd5e1] truncate">
-                Autor &bull; Perfil
+              <p className="text-[10px] sm:text-[11px] font-medium text-[#334155] dark:text-[#cbd5e1] truncate">
+                Autor • Perfil
               </p>
             </div>
 
-            <span
-              className={`material-symbols-outlined text-[18px] text-[#334155] dark:text-[#cbd5e1] group-hover:translate-x-0.5 transition-transform ${
+            {/* Quick Upload Icon Button */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                authorFileInputRef.current?.click();
+              }}
+              title="Carregar nova foto do autor"
+              className={`p-1 rounded-md text-[#64748b] hover:text-[#2563eb] dark:text-[#94a3b8] dark:hover:text-[#60a5fa] hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer ${
                 isCollapsed ? 'lg:hidden' : ''
               }`}
             >
-              person
-            </span>
-          </button>
+              <span className="material-symbols-outlined text-[17px]">photo_camera</span>
+            </button>
+          </div>
         </div>
       </nav>
     </>

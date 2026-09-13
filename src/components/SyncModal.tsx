@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { NovelProject, BackupSnapshot } from '../types';
 import { getBackupSnapshots, calculateStorageUsage, saveBackupSnapshot } from '../utils/autoSaveManager';
+import { getPortugueseJsonString } from '../utils/jsonProjectTranslator';
 
 interface SyncModalProps {
   project: NovelProject;
@@ -38,7 +39,7 @@ export const SyncModal: React.FC<SyncModalProps> = ({
   };
 
   const handleDownloadBackup = () => {
-    const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(project, null, 2));
+    const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(getPortugueseJsonString(project, 2));
     const downloadAnchor = document.createElement('a');
     const filename = `${project.title.toLowerCase().replace(/\s+/g, '_')}_backup_${new Date()
       .toISOString()

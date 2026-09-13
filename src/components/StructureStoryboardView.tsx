@@ -313,7 +313,7 @@ export const StructureStoryboardView: React.FC<StructureStoryboardViewProps> = (
   return (
     <main
       id="structure-storyboard-page"
-      className={`flex-1 flex flex-col h-[calc(100vh-3.5rem)] sm:h-[calc(100vh-4rem)] overflow-hidden transition-colors duration-200 ${
+      className={`flex-1 flex flex-col h-[calc(100vh-4rem)] sm:h-[calc(100vh-4.75rem)] lg:h-[calc(100vh-5rem)] overflow-hidden transition-colors duration-200 ${
         isDarkMode ? 'bg-[#080d14] text-[#e2e8f0]' : 'bg-[#f4f7fa] text-[#171c1f]'
       }`}
     >
@@ -344,7 +344,7 @@ export const StructureStoryboardView: React.FC<StructureStoryboardViewProps> = (
                 isDarkMode ? 'text-[#f8fafc]' : 'text-[#04162e]'
               }`}
             >
-              Estrutura & Storyboard
+              Storyboard
             </h1>
           </div>
 
@@ -383,7 +383,7 @@ export const StructureStoryboardView: React.FC<StructureStoryboardViewProps> = (
                 className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 text-white shadow-xs transition-all cursor-pointer active:scale-95 ${
                   isDarkMode ? 'bg-[#2563eb] hover:bg-[#1d4ed8]' : 'bg-[#04162e] hover:opacity-90'
                 }`}
-                title="Ir para o Estúdio de Escrita com o manuscrito"
+                title="Ir para Escrever com o manuscrito"
               >
                 <span className="material-symbols-outlined text-[16px]">edit_note</span>
                 <span>Ir para o Editor</span>
@@ -707,7 +707,7 @@ export const StructureStoryboardView: React.FC<StructureStoryboardViewProps> = (
                           className={`group rounded-lg border p-3 flex flex-col gap-2 transition-all shadow-2xs hover:shadow-md ${
                             isDarkMode
                               ? 'bg-[#141e33] border-[#223147] hover:border-[#3b82f6]'
-                              : 'bg-[#f8fafc] border-[#c5c6ce]/80 hover:border-[#04162e]'
+                              : 'bg-[#ffffff] border-[#cbd5e1] hover:border-[#04162e]'
                           }`}
                         >
                           {/* Card Header: Scene order, title & status */}
@@ -745,7 +745,7 @@ export const StructureStoryboardView: React.FC<StructureStoryboardViewProps> = (
                               scene.synopsis
                                 ? isDarkMode
                                   ? 'text-[#94a3b8]'
-                                  : 'text-[#44474d]'
+                                  : 'text-[#1e293b]'
                                 : 'italic opacity-50'
                             }`}
                             title="Clique para editar sinopse e detalhes"
@@ -762,11 +762,21 @@ export const StructureStoryboardView: React.FC<StructureStoryboardViewProps> = (
                             {/* POV Info */}
                             {povChar ? (
                               <div className="flex items-center gap-1.5 min-w-0" title={`POV: ${povChar.name}`}>
-                                <img
-                                  src={povChar.avatarUrl}
-                                  alt={povChar.name}
-                                  className="w-4 h-4 rounded-full object-cover border border-current/20 shrink-0"
-                                />
+                                {povChar.avatarUrl?.trim() ? (
+                                  <img
+                                    src={povChar.avatarUrl.trim()}
+                                    alt={povChar.name}
+                                    className="w-4 h-4 rounded-full object-cover border border-current/20 shrink-0"
+                                    onError={(e) => {
+                                      (e.target as HTMLImageElement).src =
+                                        'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&auto=format&fit=crop&q=80';
+                                    }}
+                                  />
+                                ) : (
+                                  <div className="w-4 h-4 rounded-full bg-blue-500/20 text-[8px] font-bold flex items-center justify-center shrink-0">
+                                    {povChar.name.charAt(0).toUpperCase()}
+                                  </div>
+                                )}
                                 <span className="truncate max-w-[80px] font-semibold">{povChar.name}</span>
                               </div>
                             ) : (
@@ -803,7 +813,7 @@ export const StructureStoryboardView: React.FC<StructureStoryboardViewProps> = (
                                     ? 'bg-[#2563eb] text-white hover:bg-[#1d4ed8]'
                                     : 'bg-[#04162e] text-white hover:opacity-90'
                                 }`}
-                                title="Abrir e escrever esta cena no Estúdio de Escrita"
+                                title="Abrir e escrever esta cena em Escrever"
                               >
                                 <span className="material-symbols-outlined text-[12px]">edit_note</span>
                                 <span>Escrever</span>
@@ -1046,7 +1056,21 @@ export const StructureStoryboardView: React.FC<StructureStoryboardViewProps> = (
                           <div className="flex items-center gap-3 shrink-0 self-end sm:self-auto">
                             {pov && (
                               <div className="flex items-center gap-1.5 text-xs opacity-80" title={`POV: ${pov.name}`}>
-                                <img src={pov.avatarUrl} alt={pov.name} className="w-5 h-5 rounded-full object-cover" />
+                                {pov.avatarUrl?.trim() ? (
+                                  <img
+                                    src={pov.avatarUrl.trim()}
+                                    alt={pov.name}
+                                    className="w-5 h-5 rounded-full object-cover"
+                                    onError={(e) => {
+                                      (e.target as HTMLImageElement).src =
+                                        'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&auto=format&fit=crop&q=80';
+                                    }}
+                                  />
+                                ) : (
+                                  <div className="w-5 h-5 rounded-full bg-blue-500/20 text-[10px] font-bold flex items-center justify-center">
+                                    {pov.name.charAt(0).toUpperCase()}
+                                  </div>
+                                )}
                                 <span className="font-medium text-xs">{pov.name}</span>
                               </div>
                             )}
@@ -1102,11 +1126,21 @@ export const StructureStoryboardView: React.FC<StructureStoryboardViewProps> = (
                         isDarkMode ? 'bg-[#141e33] border-[#223147]' : 'bg-[#f8fafc] border-[#e2e8f0]'
                       }`}
                     >
-                      <img
-                        src={char.avatarUrl}
-                        alt={char.name}
-                        className="w-10 h-10 rounded-full object-cover border border-current/20 shrink-0"
-                      />
+                      {char.avatarUrl?.trim() ? (
+                        <img
+                          src={char.avatarUrl.trim()}
+                          alt={char.name}
+                          className="w-10 h-10 rounded-full object-cover border border-current/20 shrink-0"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src =
+                              'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&auto=format&fit=crop&q=80';
+                          }}
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-[#dce3ea] dark:bg-[#1e293b] text-[#04162e] dark:text-[#f8fafc] font-bold flex items-center justify-center shrink-0 border border-current/20">
+                          {char.name?.charAt(0)?.toUpperCase() || 'P'}
+                        </div>
+                      )}
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center justify-between">
                           <h4 className="font-bold text-xs truncate">{char.name}</h4>

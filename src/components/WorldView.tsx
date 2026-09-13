@@ -1,22 +1,29 @@
 import React, { useState } from 'react';
 import { NovelProject, WorldLocation, LoreEntry, LocationCategory } from '../types';
+import { ImageUploadModal } from './ImageUploadModal';
 
 interface WorldViewProps {
   project: NovelProject;
   onUpdateProject: (updated: NovelProject) => void;
   selectedLocationId?: string | null;
+  isDarkMode?: boolean;
 }
 
 export const WorldView: React.FC<WorldViewProps> = ({
   project,
   onUpdateProject,
   selectedLocationId,
+  isDarkMode = false,
 }) => {
   const [activeSubTab, setActiveSubTab] = useState<'locations' | 'lore'>('locations');
   const [editingLocation, setEditingLocation] = useState<WorldLocation | null>(null);
   const [isAddingLocation, setIsAddingLocation] = useState(false);
   const [editingLore, setEditingLore] = useState<LoreEntry | null>(null);
   const [isAddingLore, setIsAddingLore] = useState(false);
+
+  // Modal de upload de imagens
+  const [isUploadOpen, setIsUploadOpen] = useState(false);
+  const [uploadTarget, setUploadTarget] = useState<'new' | 'edit'>('new');
 
   // New location state
   const [newLoc, setNewLoc] = useState<Partial<WorldLocation>>({
@@ -122,7 +129,7 @@ export const WorldView: React.FC<WorldViewProps> = ({
             Geografia, Cultura & Ambientação
           </span>
           <h1 className="font-display-lg text-display-lg text-[#04162e] text-3xl sm:text-4xl">
-            Construção de Mundo
+            Cenários
           </h1>
         </div>
 
@@ -189,11 +196,21 @@ export const WorldView: React.FC<WorldViewProps> = ({
             >
               <div>
                 <div className="relative h-48 w-full overflow-hidden bg-slate-900">
-                  <img
-                    src={loc.imageUrl}
-                    alt={loc.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
+                  {loc.imageUrl?.trim() ? (
+                    <img
+                      src={loc.imageUrl.trim()}
+                      alt={loc.name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src =
+                          'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800&auto=format&fit=crop&q=80';
+                      }}
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-slate-800 flex items-center justify-center text-slate-400">
+                      <span className="material-symbols-outlined text-4xl">location_on</span>
+                    </div>
+                  )}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent flex flex-col justify-between p-4">
                     <div className="flex justify-between items-start">
                       <span className="bg-[#04162e]/80 backdrop-blur-xs text-white text-[11px] font-bold px-2.5 py-1 rounded">
@@ -320,22 +337,35 @@ export const WorldView: React.FC<WorldViewProps> = ({
               </div>
 
               <div>
-                <label className="font-label-caps block text-[#44474d] mb-1">
-                  Link Direto da Imagem (URL)
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="font-label-caps block text-[#44474d]">
+                    Imagem do Cenário (URL)
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setUploadTarget('edit');
+                      setIsUploadOpen(true);
+                    }}
+                    className="text-[#04162e] hover:underline flex items-center gap-1 font-semibold text-[11px] cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-[13px]">cloud_upload</span>
+                    <span>Upload / Escolher Foto</span>
+                  </button>
+                </div>
                 <input
                   type="url"
                   value={editingLocation.imageUrl}
                   onChange={(e) =>
                     setEditingLocation({ ...editingLocation, imageUrl: e.target.value })
                   }
-                  placeholder="https://..."
+                  placeholder="https://... ou /imagens/cenario.png"
                   className="w-full p-2 bg-[#eaeef2] border border-[#c5c6ce] rounded focus:border-[#04162e] font-mono text-[11px]"
                 />
-                {editingLocation.imageUrl && (
+                {Boolean(editingLocation.imageUrl?.trim()) && (
                   <div className="mt-2 h-28 rounded overflow-hidden border border-[#c5c6ce]">
                     <img
-                      src={editingLocation.imageUrl}
+                      src={editingLocation.imageUrl.trim()}
                       alt="Prévia"
                       className="w-full h-full object-cover"
                     />
@@ -471,16 +501,38 @@ export const WorldView: React.FC<WorldViewProps> = ({
               </div>
 
               <div>
-                <label className="font-label-caps block text-[#44474d] mb-1">
-                  Link Direto da Imagem (URL)
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="font-label-caps block text-[#44474d]">
+                    Imagem do Cenário (URL)
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setUploadTarget('new');
+                      setIsUploadOpen(true);
+                    }}
+                    className="text-[#04162e] hover:underline flex items-center gap-1 font-semibold text-[11px] cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-[13px]">cloud_upload</span>
+                    <span>Upload / Escolher Foto</span>
+                  </button>
+                </div>
                 <input
                   type="url"
                   value={newLoc.imageUrl}
                   onChange={(e) => setNewLoc({ ...newLoc, imageUrl: e.target.value })}
-                  placeholder="https://..."
+                  placeholder="https://... ou /imagens/cenario.png"
                   className="w-full p-2 bg-[#eaeef2] border border-[#c5c6ce] rounded focus:border-[#04162e] font-mono text-[11px]"
                 />
+                {Boolean(newLoc.imageUrl?.trim()) && (
+                  <div className="mt-2 h-24 rounded overflow-hidden border border-[#c5c6ce]">
+                    <img
+                      src={newLoc.imageUrl.trim()}
+                      alt="Prévia"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
               </div>
 
               <div>
@@ -561,6 +613,21 @@ export const WorldView: React.FC<WorldViewProps> = ({
           </div>
         </div>
       )}
+      {/* Modal de Upload de Imagens */}
+      <ImageUploadModal
+        isOpen={isUploadOpen}
+        onClose={() => setIsUploadOpen(false)}
+        category="Cenário"
+        title="Escolher Foto do Cenário"
+        isDarkMode={isDarkMode}
+        onSelectImage={(url) => {
+          if (uploadTarget === 'edit' && editingLocation) {
+            setEditingLocation((prev) => (prev ? { ...prev, imageUrl: url } : null));
+          } else {
+            setNewLoc((prev) => ({ ...prev, imageUrl: url }));
+          }
+        }}
+      />
     </main>
   );
 };

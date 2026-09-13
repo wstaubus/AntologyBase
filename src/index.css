@@ -26,12 +26,12 @@
   --color-surface-container-high: #dfe6f0;
   --color-surface-container-highest: #cbd5e1;
 
-  --color-on-surface: #0f172a;
+  --color-on-surface: #04162e;
   --color-on-surface-variant: #1e293b;
-  --color-outline: #475569;
+  --color-outline: #334155;
   --color-outline-variant: #cbd5e1;
   --color-background: #f8fafc;
-  --color-on-background: #0f172a;
+  --color-on-background: #04162e;
 
   --font-serif: Merriweather, Georgia, serif;
   --font-sans: Inter, system-ui, sans-serif;
@@ -61,6 +61,9 @@
   line-height: 34px;
   letter-spacing: 0em;
   font-weight: 400;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .font-interface-sm {

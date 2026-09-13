@@ -340,6 +340,26 @@ export const WritingStudioView: React.FC<WritingStudioViewProps> = ({
         handleToggleReadingMode();
       }
 
+      // Ctrl/Cmd + Plus or Equal to increase font size
+      if ((e.ctrlKey || e.metaKey) && (e.key === '=' || e.key === '+')) {
+        e.preventDefault();
+        setFontSize((cur) => {
+          const sizes: StudioFontSize[] = ['xs', 'sm', 'base', 'lg', 'xl', '2xl'];
+          const idx = sizes.indexOf(cur);
+          return idx < sizes.length - 1 ? sizes[idx + 1] : cur;
+        });
+      }
+
+      // Ctrl/Cmd + Minus to decrease font size
+      if ((e.ctrlKey || e.metaKey) && e.key === '-') {
+        e.preventDefault();
+        setFontSize((cur) => {
+          const sizes: StudioFontSize[] = ['xs', 'sm', 'base', 'lg', 'xl', '2xl'];
+          const idx = sizes.indexOf(cur);
+          return idx > 0 ? sizes[idx - 1] : cur;
+        });
+      }
+
       // Escape closes reading mode if open
       if (e.key === 'Escape') {
         if (effectiveReadingModeOpen) {
@@ -539,32 +559,32 @@ export const WritingStudioView: React.FC<WritingStudioViewProps> = ({
       icon: 'dark_mode',
     },
     'branco-editorial': {
-      bgOuter: 'bg-[#f0f4f9]',
+      bgOuter: 'bg-[#e9eff6]',
       cardBg: 'bg-[#ffffff]',
       cardBorder: 'border-[#cbd5e1]',
-      cardShadow: 'shadow-[0_2px_20px_rgba(15,23,42,0.06)]',
-      textColor: 'text-[#0f172a]',
+      cardShadow: 'shadow-[0_4px_24px_rgba(4,22,46,0.08),0_1px_3px_rgba(4,22,46,0.05)]',
+      textColor: 'text-[#04162e]',
       headerBorder: 'border-[#e2e8f0]',
-      titleColor: 'text-[#0a1c38]',
+      titleColor: 'text-[#04162e]',
       subtitleColor: 'text-[#1d4ed8]',
-      metaColor: 'text-[#475569]',
-      selectBg: 'bg-[#eff6ff] text-[#0a1c38] border-[#bfdbfe]',
-      selectionClass: 'selection:bg-[#dbeafe] selection:text-[#1e3a8a]',
+      metaColor: 'text-[#334155]',
+      selectBg: 'bg-[#f1f5f9] text-[#04162e] border-[#94a3b8]',
+      selectionClass: 'selection:bg-[#bfdbfe] selection:text-[#04162e]',
       name: 'Branco Editorial',
       icon: 'light_mode',
     },
     'grafite-gelo': {
-      bgOuter: 'bg-[#e2e8f0]',
-      cardBg: 'bg-[#f8fafc]',
+      bgOuter: 'bg-[#dfe5ee]',
+      cardBg: 'bg-[#ffffff]',
       cardBorder: 'border-[#94a3b8]',
-      cardShadow: 'shadow-[0_2px_16px_rgba(30,41,59,0.08)]',
-      textColor: 'text-[#1e293b]',
+      cardShadow: 'shadow-[0_4px_20px_rgba(4,22,46,0.1)]',
+      textColor: 'text-[#04162e]',
       headerBorder: 'border-[#cbd5e1]',
       titleColor: 'text-[#04162e]',
-      subtitleColor: 'text-[#2563eb]',
-      metaColor: 'text-[#334155]',
-      selectBg: 'bg-[#ffffff] text-[#0f172a] border-[#94a3b8]',
-      selectionClass: 'selection:bg-[#bfdbfe] selection:text-[#0a1c38]',
+      subtitleColor: 'text-[#1d4ed8]',
+      metaColor: 'text-[#1e293b]',
+      selectBg: 'bg-[#f1f5f9] text-[#04162e] border-[#94a3b8]',
+      selectionClass: 'selection:bg-[#bfdbfe] selection:text-[#04162e]',
       name: 'Grafite Platina',
       icon: 'palette',
     },
@@ -599,32 +619,32 @@ export const WritingStudioView: React.FC<WritingStudioViewProps> = ({
       icon: 'contrast',
     },
     'sepia-dark': {
-      bgOuter: 'bg-[#e2e8f0]',
-      cardBg: 'bg-[#f8fafc]',
+      bgOuter: 'bg-[#dfe5ee]',
+      cardBg: 'bg-[#ffffff]',
       cardBorder: 'border-[#94a3b8]',
-      cardShadow: 'shadow-[0_2px_16px_rgba(30,41,59,0.08)]',
-      textColor: 'text-[#1e293b]',
+      cardShadow: 'shadow-[0_4px_20px_rgba(4,22,46,0.1)]',
+      textColor: 'text-[#04162e]',
       headerBorder: 'border-[#cbd5e1]',
       titleColor: 'text-[#04162e]',
-      subtitleColor: 'text-[#2563eb]',
-      metaColor: 'text-[#334155]',
-      selectBg: 'bg-[#ffffff] text-[#0f172a] border-[#94a3b8]',
-      selectionClass: 'selection:bg-[#bfdbfe] selection:text-[#0a1c38]',
+      subtitleColor: 'text-[#1d4ed8]',
+      metaColor: 'text-[#1e293b]',
+      selectBg: 'bg-[#f1f5f9] text-[#04162e] border-[#94a3b8]',
+      selectionClass: 'selection:bg-[#bfdbfe] selection:text-[#04162e]',
       name: 'Grafite Platina',
       icon: 'palette',
     },
     'paper-light': {
-      bgOuter: 'bg-[#f0f4f9]',
+      bgOuter: 'bg-[#e9eff6]',
       cardBg: 'bg-[#ffffff]',
       cardBorder: 'border-[#cbd5e1]',
-      cardShadow: 'shadow-[0_2px_20px_rgba(15,23,42,0.06)]',
-      textColor: 'text-[#0f172a]',
+      cardShadow: 'shadow-[0_4px_24px_rgba(4,22,46,0.08),0_1px_3px_rgba(4,22,46,0.05)]',
+      textColor: 'text-[#04162e]',
       headerBorder: 'border-[#e2e8f0]',
-      titleColor: 'text-[#0a1c38]',
+      titleColor: 'text-[#04162e]',
       subtitleColor: 'text-[#1d4ed8]',
-      metaColor: 'text-[#475569]',
-      selectBg: 'bg-[#eff6ff] text-[#0a1c38] border-[#bfdbfe]',
-      selectionClass: 'selection:bg-[#dbeafe] selection:text-[#1e3a8a]',
+      metaColor: 'text-[#334155]',
+      selectBg: 'bg-[#f1f5f9] text-[#04162e] border-[#94a3b8]',
+      selectionClass: 'selection:bg-[#bfdbfe] selection:text-[#04162e]',
       name: 'Branco Editorial',
       icon: 'light_mode',
     },
@@ -644,12 +664,40 @@ export const WritingStudioView: React.FC<WritingStudioViewProps> = ({
     icon: 'nights_stay',
   };
 
+  const fontSizes: StudioFontSize[] = ['xs', 'sm', 'base', 'lg', 'xl', '2xl'];
+  const currentFontIndex = fontSizes.indexOf(fontSize);
+  const canDecreaseFont = currentFontIndex > 0;
+  const canIncreaseFont = currentFontIndex < fontSizes.length - 1;
+
+  const handleDecreaseFont = () => {
+    if (canDecreaseFont) {
+      setFontSize(fontSizes[currentFontIndex - 1]);
+    }
+  };
+
+  const handleIncreaseFont = () => {
+    if (canIncreaseFont) {
+      setFontSize(fontSizes[currentFontIndex + 1]);
+    }
+  };
+
+  const fontSizeLabels: Record<StudioFontSize, string> = {
+    xs: 'Muito Pequeno',
+    sm: 'Pequeno',
+    base: 'Padrão',
+    lg: 'Grande',
+    xl: 'Muito Grande',
+    '2xl': 'Gigante',
+  };
+
   const fontSizeClass = {
+    xs: 'text-xs sm:text-sm',
     sm: 'text-sm sm:text-base',
     base: 'text-base sm:text-lg',
     lg: 'text-lg sm:text-xl',
     xl: 'text-xl sm:text-2xl',
-  }[fontSize];
+    '2xl': 'text-2xl sm:text-3xl',
+  }[fontSize] || 'text-base sm:text-lg';
 
   const lineSpacingStyle = {
     normal: '1.6',
@@ -708,119 +756,7 @@ export const WritingStudioView: React.FC<WritingStudioViewProps> = ({
   }
 
   return (
-    <div id="writing-studio-container" className="flex-1 flex flex-col h-[calc(100vh-3.5rem)] sm:h-[calc(100vh-4rem)] overflow-hidden relative">
-      {/* Studio Responsive Workspace Bar (Computer, Tablet & Mobile): Ficheiro, Inspetor & Leitura */}
-      <div
-        id="studio-responsive-nav-bar"
-        className={`flex flex-wrap items-center justify-between gap-2 border-b px-2 sm:px-4 py-1.5 shrink-0 z-20 transition-colors select-none ${
-          isDarkEffective ? 'bg-[#0d1420] border-[#1e293b]' : 'bg-[#f0f4f8] border-[#c5c6ce]'
-        }`}
-      >
-        <div className="flex items-center flex-wrap gap-1.5 sm:gap-2">
-          {/* 1. Ficheiro */}
-          <button
-            id="studio-btn-chapters"
-            onClick={() => {
-              if (effectiveInspectorOpen && inspectorTab === 'ficheiro') {
-                handleToggleInspector();
-              } else {
-                if (!effectiveInspectorOpen) handleToggleInspector();
-                setInspectorTab('ficheiro');
-              }
-            }}
-            className={`flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-              effectiveInspectorOpen && inspectorTab === 'ficheiro'
-                ? isDarkEffective
-                  ? 'bg-[#2563eb] text-white shadow-xs'
-                  : 'bg-[#04162e] text-white shadow-xs'
-                : isDarkEffective
-                ? 'text-[#94a3b8] hover:text-[#f8fafc] hover:bg-[#16202f]'
-                : 'text-[#44474d] hover:text-[#04162e] hover:bg-[#eaeef2]'
-            }`}
-            title="Ficheiro: Capítulos & Cenas no Inspetor (Ctrl+B)"
-          >
-            <span className="material-symbols-outlined text-[16px] sm:text-[18px]">folder_open</span>
-            <span>Ficheiro</span>
-            <span
-              className={`text-[10px] px-1.5 py-0.2 rounded-full ${
-                effectiveInspectorOpen && inspectorTab === 'ficheiro'
-                  ? 'bg-white/20 text-white'
-                  : isDarkEffective
-                  ? 'bg-[#1e293b] text-[#93c5fd]'
-                  : 'bg-[#c5c6ce] text-[#04162e]'
-              }`}
-            >
-              {totalSceneCount}
-            </span>
-          </button>
-
-          {/* 2. Inspetor */}
-          <button
-            id="studio-btn-inspector"
-            onClick={handleToggleInspector}
-            className={`flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-              effectiveInspectorOpen
-                ? isDarkEffective
-                  ? 'bg-[#2563eb] text-white shadow-xs'
-                  : 'bg-[#04162e] text-white shadow-xs'
-                : isDarkEffective
-                ? 'text-[#94a3b8] hover:text-[#f8fafc] hover:bg-[#16202f]'
-                : 'text-[#44474d] hover:text-[#04162e] hover:bg-[#eaeef2]'
-            }`}
-            title={effectiveInspectorOpen ? 'Fechar painel do Inspetor lateral (Ctrl+I)' : 'Abrir painel do Inspetor lateral (Ctrl+I)'}
-          >
-            <span className="material-symbols-outlined text-[16px] sm:text-[18px]">
-              {effectiveInspectorOpen ? 'view_sidebar' : 'vertical_split'}
-            </span>
-            <span>Inspetor</span>
-            <span
-              className={`text-[10px] px-1.5 py-0.2 rounded-full ${
-                effectiveInspectorOpen
-                  ? 'bg-white/20 text-white'
-                  : isDarkEffective
-                  ? 'bg-[#1e293b] text-[#93c5fd]'
-                  : 'bg-[#c5c6ce] text-[#04162e]'
-              }`}
-            >
-              {effectiveInspectorOpen ? 'Aberto' : 'Fechado'}
-            </span>
-            {totalStyleAlerts > 0 && (
-              <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-rose-500 text-white font-bold">
-                {totalStyleAlerts}
-              </span>
-            )}
-          </button>
-        </div>
-
-        {/* Right side utilities: Active Scene Info + Leitura */}
-        <div className="flex items-center flex-wrap gap-2">
-          {activeScene && (
-            <div className="hidden sm:flex items-center gap-2 text-[11px] opacity-80 px-2.5 py-1 rounded-lg border border-current/10">
-              <span className="font-semibold truncate max-w-[130px] sm:max-w-[200px] lg:max-w-[280px]">{activeScene.title}</span>
-              <span className="opacity-50">•</span>
-              <span>{activeScene.wordCount.toLocaleString()} palavras</span>
-            </div>
-          )}
-
-          {/* Reading Mode Button */}
-          <button
-            id="studio-btn-reading-mode"
-            onClick={handleToggleReadingMode}
-            className={`flex items-center gap-1 px-2.5 py-1 sm:py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-              effectiveReadingModeOpen
-                ? 'bg-emerald-600 text-white shadow-xs'
-                : isDarkEffective
-                ? 'text-emerald-400 hover:text-emerald-300 hover:bg-emerald-950/40 border border-emerald-500/30'
-                : 'text-emerald-800 hover:text-emerald-950 hover:bg-emerald-50 border border-emerald-600/30'
-            }`}
-            title="Modo de Leitura: Foco imersivo no texto para revisão (Alt+R)"
-          >
-            <span className="material-symbols-outlined text-[16px] sm:text-[18px]">auto_stories</span>
-            <span className="hidden sm:inline">Leitura</span>
-          </button>
-        </div>
-      </div>
-
+    <div id="writing-studio-container" className="flex-1 flex flex-col h-[calc(100vh-4rem)] sm:h-[calc(100vh-4.75rem)] lg:h-[calc(100vh-5rem)] overflow-hidden relative">
       {/* Main Studio Work Area with Panes: Editor on Left, Inspector on Right */}
       <div className="flex-1 flex flex-col md:flex-row h-full overflow-hidden relative">
         {/* 1. The Writing Editor (Text editor is ALWAYS visible, occupying fluid space) */}
@@ -839,31 +775,6 @@ export const WritingStudioView: React.FC<WritingStudioViewProps> = ({
         >
           {/* Left toolbar formatting buttons (responsive flex-wrap) */}
           <div className="flex items-center flex-wrap gap-1">
-            {/* Quick Toggle Ficheiro in Inspector Button */}
-            <button
-              id="toolbar-btn-ficheiro"
-              onClick={() => {
-                if (effectiveInspectorOpen && inspectorTab === 'ficheiro') {
-                  handleToggleInspector();
-                } else {
-                  if (!effectiveInspectorOpen) handleToggleInspector();
-                  setInspectorTab('ficheiro');
-                }
-              }}
-              className={`p-1.5 rounded transition-colors flex items-center gap-1 mr-1 cursor-pointer ${
-                effectiveInspectorOpen && inspectorTab === 'ficheiro'
-                  ? isDarkEffective ? 'text-[#60a5fa] hover:bg-[#1a2536]' : 'text-[#04162e] hover:bg-[#eaeef2]'
-                  : isDarkEffective ? 'text-[#cbd5e1] hover:text-white hover:bg-[#1a2536]' : 'text-[#1e293b] hover:text-[#04162e] hover:bg-[#eaeef2]'
-              }`}
-              title={effectiveInspectorOpen && inspectorTab === 'ficheiro' ? 'Ocultar Ficheiro (Ctrl+B)' : 'Abrir Ficheiro no Inspetor (Ctrl+B)'}
-            >
-              <span className="material-symbols-outlined text-[18px]">
-                folder_open
-              </span>
-              <span className="text-[11px] font-bold hidden sm:inline">Ficheiro</span>
-            </button>
-            <div className={`w-px h-5 mx-1 hidden sm:block ${isDarkEffective ? 'bg-[#1e293b]' : 'bg-[#cbd5e1]'}`}></div>
-
             <button
               onClick={() => insertFormatting('**', '**')}
               className={`p-1.5 rounded transition-colors ${
@@ -1036,37 +947,78 @@ export const WritingStudioView: React.FC<WritingStudioViewProps> = ({
               <span className="material-symbols-outlined text-[14px]">auto_fix_high</span>
               <span>Estilo ({totalStyleAlerts})</span>
             </button>
-            {/* Font Size & Spacing Controls */}
-            <div className="hidden sm:flex items-center gap-0.5 mr-1">
-              <button
-                onClick={() => {
-                  const sizes: StudioFontSize[] = ['sm', 'base', 'lg', 'xl'];
-                  const curIdx = sizes.indexOf(fontSize);
-                  const nextIdx = (curIdx + 1) % sizes.length;
-                  setFontSize(sizes[nextIdx]);
-                }}
-                className={`px-2 py-1 rounded text-[11px] font-semibold flex items-center gap-0.5 border ${
+            {/* Font Size Increase/Decrease Controls & Spacing */}
+            <div className="flex items-center gap-1 mr-1">
+              <div
+                className={`flex items-center rounded-lg border p-0.5 transition-colors ${
                   isDarkEffective
-                    ? 'border-[#253347] bg-[#16202f] text-[#cbd5e1] hover:text-white'
-                    : 'border-[#c5c6ce] bg-[#eaeef2] text-[#04162e] hover:bg-[#dfe3e7]'
+                    ? 'border-[#253347] bg-[#16202f]'
+                    : 'border-[#c5c6ce] bg-[#eaeef2]'
                 }`}
-                title={`Alterar Tamanho da Fonte (Atual: ${fontSize})`}
               >
-                <span className="text-[10px]">A</span>
-                <span className="text-xs font-bold">A+</span>
-              </button>
+                {/* Botão Diminuir Texto (A-) */}
+                <button
+                  id="btn-font-decrease"
+                  onClick={handleDecreaseFont}
+                  disabled={!canDecreaseFont}
+                  className={`px-1.5 py-1 rounded font-semibold flex items-center gap-0.5 transition-all ${
+                    !canDecreaseFont
+                      ? 'opacity-30 cursor-not-allowed text-gray-400'
+                      : isDarkEffective
+                      ? 'text-[#cbd5e1] hover:text-white hover:bg-[#1f2e42] cursor-pointer'
+                      : 'text-[#04162e] hover:bg-[#dfe3e7] cursor-pointer'
+                  }`}
+                  title={canDecreaseFont ? `Diminuir tamanho do texto: ${fontSizeLabels[fontSizes[currentFontIndex - 1]]} (Ctrl+-)` : 'Tamanho mínimo atingido'}
+                  aria-label="Diminuir texto"
+                >
+                  <span className="material-symbols-outlined text-[15px]">text_decrease</span>
+                  <span className="text-[10px] font-bold">A-</span>
+                </button>
 
+                {/* Indicador do Tamanho Atual */}
+                <span
+                  className={`text-[10px] font-mono font-semibold px-1 text-center min-w-[24px] select-none ${
+                    isDarkEffective ? 'text-[#94a3b8]' : 'text-[#475569]'
+                  }`}
+                  title={`Tamanho atual: ${fontSizeLabels[fontSize]}`}
+                >
+                  {fontSize.toUpperCase()}
+                </span>
+
+                {/* Botão Aumentar Texto (A+) */}
+                <button
+                  id="btn-font-increase"
+                  onClick={handleIncreaseFont}
+                  disabled={!canIncreaseFont}
+                  className={`px-1.5 py-1 rounded font-semibold flex items-center gap-0.5 transition-all ${
+                    !canIncreaseFont
+                      ? 'opacity-30 cursor-not-allowed text-gray-400'
+                      : isDarkEffective
+                      ? 'text-[#cbd5e1] hover:text-white hover:bg-[#1f2e42] cursor-pointer'
+                      : 'text-[#04162e] hover:bg-[#dfe3e7] cursor-pointer'
+                  }`}
+                  title={canIncreaseFont ? `Aumentar tamanho do texto: ${fontSizeLabels[fontSizes[currentFontIndex + 1]]} (Ctrl++)` : 'Tamanho máximo atingido'}
+                  aria-label="Aumentar texto"
+                >
+                  <span className="material-symbols-outlined text-[15px]">text_increase</span>
+                  <span className="text-[10px] font-bold">A+</span>
+                </button>
+              </div>
+
+              {/* Espaçamento de Linha */}
               <button
+                id="btn-line-spacing"
                 onClick={() => {
                   const next = lineSpacing === 'normal' ? 'relaxed' : lineSpacing === 'relaxed' ? 'spacious' : 'normal';
                   setLineSpacing(next);
                 }}
-                className={`p-1 rounded border ${
+                className={`p-1 rounded border transition-colors cursor-pointer ${
                   isDarkEffective
-                    ? 'border-[#253347] bg-[#16202f] text-[#cbd5e1] hover:text-white'
+                    ? 'border-[#253347] bg-[#16202f] text-[#cbd5e1] hover:text-white hover:bg-[#1f2e42]'
                     : 'border-[#c5c6ce] bg-[#eaeef2] text-[#04162e] hover:bg-[#dfe3e7]'
                 }`}
                 title={`Espaçamento de Linha (Atual: ${lineSpacing})`}
+                aria-label="Alternar espaçamento de linha"
               >
                 <span className="material-symbols-outlined text-[16px]">format_line_spacing</span>
               </button>
@@ -1736,13 +1688,29 @@ export const WritingStudioView: React.FC<WritingStudioViewProps> = ({
                           : 'bg-[#eaeef2] border-[#cbd5e1]'
                       }`}
                     >
-                      <img
-                        src={povChar.avatarUrl}
-                        alt={povChar.name}
-                        className={`w-8 h-8 rounded-full object-cover border ${
-                          isDarkEffective ? 'border-[#334155]' : 'border-[#cbd5e1]'
-                        }`}
-                      />
+                      {povChar.avatarUrl?.trim() ? (
+                        <img
+                          src={povChar.avatarUrl.trim()}
+                          alt={povChar.name}
+                          className={`w-8 h-8 rounded-full object-cover border ${
+                            isDarkEffective ? 'border-[#334155]' : 'border-[#cbd5e1]'
+                          }`}
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src =
+                              'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&auto=format&fit=crop&q=80';
+                          }}
+                        />
+                      ) : (
+                        <div
+                          className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs border ${
+                            isDarkEffective
+                              ? 'bg-[#1e293b] border-[#334155] text-white'
+                              : 'bg-[#e2e8f0] border-[#cbd5e1] text-[#04162e]'
+                          }`}
+                        >
+                          {povChar.name?.charAt(0)?.toUpperCase() || 'P'}
+                        </div>
+                      )}
                       <div className="min-w-0">
                         <p className={`font-bold truncate ${isDarkEffective ? 'text-[#f8fafc]' : 'text-[#04162e]'}`}>
                           {povChar.name}
@@ -1779,11 +1747,21 @@ export const WritingStudioView: React.FC<WritingStudioViewProps> = ({
 
                   {locObj && (
                     <div className={`relative rounded overflow-hidden h-20 border mb-1 ${isDarkEffective ? 'border-[#24334a]' : 'border-[#cbd5e1]'}`}>
-                      <img
-                        src={locObj.imageUrl}
-                        alt={locObj.name}
-                        className="w-full h-full object-cover"
-                      />
+                      {locObj.imageUrl?.trim() ? (
+                        <img
+                          src={locObj.imageUrl.trim()}
+                          alt={locObj.name}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src =
+                              'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800&auto=format&fit=crop&q=80';
+                          }}
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-slate-800 flex items-center justify-center text-slate-400">
+                          <span className="material-symbols-outlined text-xl">location_on</span>
+                        </div>
+                      )}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent p-2 flex items-end">
                         <span className="text-white font-bold text-[11px] truncate">
                           {locObj.name}

@@ -219,8 +219,8 @@ export const FocusModeModal: React.FC<FocusModeModalProps> = ({
   const themeClasses = {
     dark: 'bg-[#080e18] text-[#ffffff] selection:bg-blue-600/50 selection:text-white',
     graphite: 'bg-[#111827] text-[#f8fafc] selection:bg-cyan-600/40 selection:text-white',
-    white: 'bg-[#ffffff] text-[#0f172a] selection:bg-blue-100 selection:text-blue-900',
-    platinum: 'bg-[#e2e8f0] text-[#1e293b] selection:bg-blue-200 selection:text-blue-950',
+    white: 'bg-[#ffffff] text-[#04162e] selection:bg-blue-100 selection:text-blue-950',
+    platinum: 'bg-[#e2e8f0] text-[#04162e] selection:bg-blue-200 selection:text-blue-950',
   };
 
   return (
@@ -235,7 +235,7 @@ export const FocusModeModal: React.FC<FocusModeModalProps> = ({
           <button
             id="btn-focus-back"
             onClick={onClose}
-            title="Voltar ao Estúdio de Escrita (ESC)"
+            title="Voltar a Escrever (ESC)"
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-semibold text-xs transition-all cursor-pointer bg-current/10 hover:bg-current/20 active:scale-95 border border-current/15 text-current shadow-xs"
           >
             <span className="material-symbols-outlined text-[18px]">arrow_back</span>
@@ -425,10 +425,10 @@ export const FocusModeModal: React.FC<FocusModeModalProps> = ({
             id="btn-focus-back-bottom"
             onClick={onClose}
             className="flex items-center gap-1 font-semibold px-2.5 py-1 rounded bg-current/10 hover:bg-current/20 active:scale-95 transition-all cursor-pointer border border-current/15"
-            title="Voltar ao Estúdio de Escrita (ESC)"
+            title="Voltar a Escrever (ESC)"
           >
             <span className="material-symbols-outlined text-[14px]">arrow_back</span>
-            <span>Voltar ao Estúdio</span>
+            <span>Voltar a Escrever</span>
           </button>
           <span className="hidden md:inline opacity-70">
             (ou <strong>ESC</strong>)

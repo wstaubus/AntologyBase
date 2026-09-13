@@ -63,7 +63,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         <div>
           <span
             id="dashboard-eyebrow"
-            className="font-label-caps text-label-caps text-[#44474d] dark:text-[#94a3b8] uppercase tracking-wider mb-1 sm:mb-2 block text-xs"
+            className="font-label-caps text-label-caps text-[#334155] dark:text-[#94a3b8] uppercase tracking-wider mb-1 sm:mb-2 block text-xs font-bold"
           >
             Painel do Projeto
           </span>
@@ -80,13 +80,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         <div className="flex items-center gap-2 shrink-0 flex-wrap">
           <span
             id="pill-status-phase"
-            className="px-2.5 sm:px-3 py-1 bg-[#eaeef2] dark:bg-[#16202f] rounded-full font-label-caps text-label-caps text-[#44474d] dark:text-[#94a3b8] border border-[#c5c6ce] dark:border-[#253347] text-xs font-semibold"
+            className="px-2.5 sm:px-3 py-1 bg-[#eaeef2] dark:bg-[#16202f] rounded-full font-label-caps text-label-caps text-[#1e293b] dark:text-[#cbd5e1] border border-[#c5c6ce] dark:border-[#253347] text-xs font-semibold"
           >
             {project.phase || 'Rascunho'}
           </span>
           <span
             id="pill-status-words"
-            className="px-2.5 sm:px-3 py-1 bg-[#eaeef2] dark:bg-[#16202f] rounded-full font-label-caps text-label-caps text-[#44474d] dark:text-[#94a3b8] border border-[#c5c6ce] dark:border-[#253347] text-xs font-semibold"
+            className="px-2.5 sm:px-3 py-1 bg-[#eaeef2] dark:bg-[#16202f] rounded-full font-label-caps text-label-caps text-[#1e293b] dark:text-[#cbd5e1] border border-[#c5c6ce] dark:border-[#253347] text-xs font-semibold"
           >
             {displayWords.toLocaleString('pt-BR')} Palavras
           </span>
@@ -104,13 +104,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <h3 className="font-headline-md text-headline-md text-[#04162e] dark:text-[#f8fafc] text-base sm:text-lg font-bold">
               Progresso da História
             </h3>
-            <span className="material-symbols-outlined text-[#44474d] dark:text-[#94a3b8]">
+            <span className="material-symbols-outlined text-[#334155] dark:text-[#94a3b8]">
               trending_up
             </span>
           </div>
 
           <div className="flex flex-col gap-3 sm:gap-4">
-            <div className="flex justify-between font-interface-sm text-interface-sm text-[#44474d] dark:text-[#94a3b8] text-xs sm:text-sm">
+            <div className="flex justify-between font-interface-sm text-interface-sm text-[#334155] dark:text-[#94a3b8] text-xs sm:text-sm">
               <span>Meta: {targetWords.toLocaleString('pt-BR')} palavras</span>
               <span className="font-semibold text-[#04162e] dark:text-[#60a5fa]">{progressPercent}% Concluído</span>
             </div>
@@ -128,7 +128,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 id="stat-box-chapters"
                 className="flex flex-col gap-0.5 sm:gap-1 p-2 sm:p-3 bg-[#f6fafe] dark:bg-[#16202f] rounded border border-[#c5c6ce] dark:border-[#253347]"
               >
-                <span className="font-label-caps text-label-caps text-[#44474d] dark:text-[#94a3b8] text-[10px] sm:text-[11px] truncate">
+                <span className="font-label-caps text-label-caps text-[#334155] dark:text-[#94a3b8] text-[10px] sm:text-[11px] truncate font-semibold">
                   Capítulos
                 </span>
                 <span className="font-headline-md text-headline-md text-[#04162e] dark:text-[#f8fafc] text-base sm:text-xl font-bold">
@@ -140,7 +140,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 id="stat-box-scenes"
                 className="flex flex-col gap-0.5 sm:gap-1 p-2 sm:p-3 bg-[#f6fafe] dark:bg-[#16202f] rounded border border-[#c5c6ce] dark:border-[#253347]"
               >
-                <span className="font-label-caps text-label-caps text-[#44474d] dark:text-[#94a3b8] text-[10px] sm:text-[11px] truncate">
+                <span className="font-label-caps text-label-caps text-[#334155] dark:text-[#94a3b8] text-[10px] sm:text-[11px] truncate font-semibold">
                   Cenas
                 </span>
                 <span className="font-headline-md text-headline-md text-[#04162e] dark:text-[#f8fafc] text-base sm:text-xl font-bold">
@@ -152,7 +152,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 id="stat-box-avg-words"
                 className="flex flex-col gap-0.5 sm:gap-1 p-2 sm:p-3 bg-[#f6fafe] dark:bg-[#16202f] rounded border border-[#c5c6ce] dark:border-[#253347]"
               >
-                <span className="font-label-caps text-label-caps text-[#44474d] dark:text-[#94a3b8] text-[10px] sm:text-[11px] truncate">
+                <span className="font-label-caps text-label-caps text-[#334155] dark:text-[#94a3b8] text-[10px] sm:text-[11px] truncate font-semibold">
                   Média / Cap.
                 </span>
                 <span className="font-headline-md text-headline-md text-[#04162e] dark:text-[#f8fafc] text-base sm:text-xl font-bold truncate">
@@ -172,7 +172,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <h3 className="font-headline-md text-headline-md text-[#04162e] dark:text-[#f8fafc] text-base sm:text-lg font-bold">
               Personagens
             </h3>
-            <span className="material-symbols-outlined text-[#44474d] dark:text-[#94a3b8]">group</span>
+            <span className="material-symbols-outlined text-[#334155] dark:text-[#94a3b8]">group</span>
           </div>
 
           <div className="flex-grow flex flex-col justify-center py-2">
@@ -186,18 +186,28 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   className="relative transition-transform hover:scale-110 hover:z-40 focus:outline-none cursor-pointer"
                   style={{ zIndex: 30 - index * 10 }}
                 >
-                  <img
-                    className="w-12 h-12 sm:w-16 sm:h-16 rounded-full border-2 border-[#f6fafe] dark:border-[#16202f] object-cover shadow-sm"
-                    src={char.avatarUrl}
-                    alt={char.name}
-                  />
+                  {char.avatarUrl?.trim() ? (
+                    <img
+                      className="w-12 h-12 sm:w-16 sm:h-16 rounded-full border-2 border-[#f6fafe] dark:border-[#16202f] object-cover shadow-sm"
+                      src={char.avatarUrl.trim()}
+                      alt={char.name}
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src =
+                          'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&auto=format&fit=crop&q=80';
+                      }}
+                    />
+                  ) : (
+                    <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full border-2 border-[#f6fafe] dark:border-[#16202f] bg-[#dce3ea] dark:bg-[#1e293b] flex items-center justify-center text-[#04162e] dark:text-[#f8fafc] font-bold text-sm sm:text-base shadow-sm">
+                      {char.name?.charAt(0)?.toUpperCase() || 'P'}
+                    </div>
+                  )}
                 </button>
               ))}
             </div>
 
             <p
               id="characters-count-description"
-              className="font-writing-canvas text-writing-canvas text-xs sm:text-sm text-center text-[#44474d] dark:text-[#94a3b8]"
+              className="font-writing-canvas text-writing-canvas text-xs sm:text-sm text-center text-[#334155] dark:text-[#94a3b8]"
             >
               {project.characters.length} Personagens ativos rastreados neste projeto.
             </p>
@@ -221,7 +231,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <h3 className="font-headline-md text-headline-md text-[#04162e] dark:text-[#f8fafc] text-base sm:text-lg font-bold">
               Cenário Principal
             </h3>
-            <span className="material-symbols-outlined text-[#44474d] dark:text-[#94a3b8]">
+            <span className="material-symbols-outlined text-[#334155] dark:text-[#94a3b8]">
               location_on
             </span>
           </div>
@@ -249,7 +259,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </div>
           </div>
 
-          <p className="font-writing-canvas text-writing-canvas text-xs sm:text-sm text-[#44474d] dark:text-[#94a3b8] line-clamp-2">
+          <p className="font-writing-canvas text-writing-canvas text-xs sm:text-sm text-[#334155] dark:text-[#94a3b8] line-clamp-2">
             {primaryLocation?.shortDescription ||
               'A metrópole costeira de vários níveis onde ocorre o conflito principal.'}
           </p>
@@ -293,7 +303,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       {/* Project Synopsis & Key Theme Note */}
       <div
         id="synopsis-callout"
-        className="bg-[#eaeef2] dark:bg-[#16202f] border border-[#c5c6ce] dark:border-[#253347] rounded-xl p-4 sm:p-5 mb-6 sm:mb-8"
+        className="bg-[#ffffff] dark:bg-[#16202f] border border-[#c5c6ce] dark:border-[#253347] rounded-xl p-4 sm:p-5 mb-6 sm:mb-8 shadow-2xs"
       >
         <div className="flex items-center gap-2 mb-2 text-[#04162e] dark:text-[#f8fafc]">
           <span className="material-symbols-outlined text-[18px]">menu_book</span>
@@ -301,7 +311,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             Sinopse & Premissa Central
           </h4>
         </div>
-        <p className="font-writing-canvas text-writing-canvas text-xs sm:text-sm text-[#44474d] dark:text-[#94a3b8] leading-relaxed">
+        <p className="font-writing-canvas text-writing-canvas text-xs sm:text-sm text-[#1e293b] dark:text-[#cbd5e1] leading-relaxed">
           {project.synopsis}
         </p>
       </div>

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { NovelProject, Character, CharacterRole } from '../types';
 import { NameGeneratorModal } from './NameGeneratorModal';
 import { GeneratedNameItem } from '../data/nameGeneratorData';
+import { ImageUploadModal } from './ImageUploadModal';
 
 interface CharactersViewProps {
   project: NovelProject;
@@ -50,6 +51,10 @@ export const CharactersView: React.FC<CharactersViewProps> = ({
     status: 'Ativo',
   });
   const [traitInput, setTraitInput] = useState('');
+
+  // Image upload modal state
+  const [isUploadOpen, setIsUploadOpen] = useState(false);
+  const [uploadTarget, setUploadTarget] = useState<'new' | 'edit'>('new');
 
   const handleSelectGeneratedName = (name: string, item?: GeneratedNameItem) => {
     if (nameGenContext === 'new-char') {
@@ -273,11 +278,21 @@ export const CharactersView: React.FC<CharactersViewProps> = ({
             >
               <div>
                 <div className="flex items-start gap-3.5 mb-3.5">
-                  <img
-                    src={char.avatarUrl}
-                    alt={char.name}
-                    className="w-14 h-14 rounded-full object-cover border border-[#c5c6ce] shrink-0 group-hover:ring-2 group-hover:ring-[#04162e] transition-all shadow-sm"
-                  />
+                  {char.avatarUrl?.trim() ? (
+                    <img
+                      src={char.avatarUrl.trim()}
+                      alt={char.name}
+                      className="w-14 h-14 rounded-full object-cover border border-[#c5c6ce] shrink-0 group-hover:ring-2 group-hover:ring-[#04162e] transition-all shadow-sm"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src =
+                          'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&auto=format&fit=crop&q=80';
+                      }}
+                    />
+                  ) : (
+                    <div className="w-14 h-14 rounded-full bg-[#eaeef2] text-[#04162e] font-bold text-lg flex items-center justify-center border border-[#c5c6ce] shrink-0 shadow-sm">
+                      {char.name?.charAt(0)?.toUpperCase() || 'P'}
+                    </div>
+                  )}
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-1 mb-1">
                       <h3 className="font-headline-md text-base font-bold text-[#04162e] truncate">
@@ -346,11 +361,21 @@ export const CharactersView: React.FC<CharactersViewProps> = ({
           <div className="bg-[#ffffff] rounded-xl border border-[#c5c6ce] max-w-xl w-full max-h-[90vh] overflow-y-auto p-6 shadow-2xl">
             <div className="flex justify-between items-center pb-4 border-b border-[#c5c6ce] mb-5">
               <div className="flex items-center gap-3">
-                <img
-                  src={editingCharacter.avatarUrl}
-                  alt={editingCharacter.name}
-                  className="w-12 h-12 rounded-full object-cover border border-[#c5c6ce]"
-                />
+                {editingCharacter.avatarUrl?.trim() ? (
+                  <img
+                    src={editingCharacter.avatarUrl.trim()}
+                    alt={editingCharacter.name}
+                    className="w-12 h-12 rounded-full object-cover border border-[#c5c6ce]"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src =
+                        'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&auto=format&fit=crop&q=80';
+                    }}
+                  />
+                ) : (
+                  <div className="w-12 h-12 rounded-full bg-[#eaeef2] text-[#04162e] font-bold text-base flex items-center justify-center border border-[#c5c6ce]">
+                    {editingCharacter.name?.charAt(0)?.toUpperCase() || 'P'}
+                  </div>
+                )}
                 <div>
                   <h2 className="font-headline-md text-lg font-bold text-[#04162e]">
                     Editar Personagem
@@ -421,19 +446,39 @@ export const CharactersView: React.FC<CharactersViewProps> = ({
               </div>
 
               <div>
-                <label className="font-label-caps block text-[#44474d] mb-1">
-                  Link Direto da Imagem / Avatar (URL)
-                </label>
-                <div className="flex gap-2">
+                <div className="flex items-center justify-between mb-1">
+                  <label className="font-label-caps block text-[#44474d]">
+                    Foto / Avatar do Personagem
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setUploadTarget('edit');
+                      setIsUploadOpen(true);
+                    }}
+                    className="text-[#04162e] hover:underline flex items-center gap-1 font-semibold text-[11px] cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-[13px]">cloud_upload</span>
+                    <span>Upload / Escolher Foto</span>
+                  </button>
+                </div>
+                <div className="flex gap-2 items-center">
                   <input
                     type="url"
                     value={editingCharacter.avatarUrl}
                     onChange={(e) =>
                       setEditingCharacter({ ...editingCharacter, avatarUrl: e.target.value })
                     }
-                    placeholder="https://..."
+                    placeholder="https://... ou /imagens/personagem.png"
                     className="flex-1 p-2 bg-[#eaeef2] border border-[#c5c6ce] rounded focus:border-[#04162e] font-mono text-[11px]"
                   />
+                  {Boolean(editingCharacter.avatarUrl?.trim()) && (
+                    <img
+                      src={editingCharacter.avatarUrl.trim()}
+                      alt="Avatar"
+                      className="w-8 h-8 rounded-full object-cover border border-[#c5c6ce]"
+                    />
+                  )}
                 </div>
               </div>
 
@@ -595,16 +640,38 @@ export const CharactersView: React.FC<CharactersViewProps> = ({
               </div>
 
               <div>
-                <label className="font-label-caps block text-[#44474d] mb-1">
-                  Link Direto da Imagem / Foto (URL)
-                </label>
-                <input
-                  type="url"
-                  value={newChar.avatarUrl}
-                  onChange={(e) => setNewChar({ ...newChar, avatarUrl: e.target.value })}
-                  placeholder="https://... (ex: link direto do HTML ou da web)"
-                  className="w-full p-2 bg-[#eaeef2] border border-[#c5c6ce] rounded focus:border-[#04162e] font-mono text-[11px]"
-                />
+                <div className="flex items-center justify-between mb-1">
+                  <label className="font-label-caps block text-[#44474d]">
+                    Foto / Avatar do Personagem
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setUploadTarget('new');
+                      setIsUploadOpen(true);
+                    }}
+                    className="text-[#04162e] hover:underline flex items-center gap-1 font-semibold text-[11px] cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-[13px]">cloud_upload</span>
+                    <span>Upload / Escolher Foto</span>
+                  </button>
+                </div>
+                <div className="flex gap-2 items-center">
+                  <input
+                    type="url"
+                    value={newChar.avatarUrl}
+                    onChange={(e) => setNewChar({ ...newChar, avatarUrl: e.target.value })}
+                    placeholder="https://... ou /imagens/personagem.png"
+                    className="flex-1 p-2 bg-[#eaeef2] border border-[#c5c6ce] rounded focus:border-[#04162e] font-mono text-[11px]"
+                  />
+                  {Boolean(newChar.avatarUrl?.trim()) && (
+                    <img
+                      src={newChar.avatarUrl.trim()}
+                      alt="Novo Avatar"
+                      className="w-8 h-8 rounded-full object-cover border border-[#c5c6ce]"
+                    />
+                  )}
+                </div>
               </div>
 
               <div>
@@ -681,6 +748,22 @@ export const CharactersView: React.FC<CharactersViewProps> = ({
         onClose={() => setIsNameGenOpen(false)}
         onSelectName={handleSelectGeneratedName}
         contextMode={nameGenContext === 'header' ? 'direct-create' : 'fill-input'}
+      />
+
+      {/* Image Upload Modal */}
+      <ImageUploadModal
+        isOpen={isUploadOpen}
+        onClose={() => setIsUploadOpen(false)}
+        category="Personagem"
+        title="Escolher Foto do Personagem"
+        isDarkMode={isDarkMode}
+        onSelectImage={(url) => {
+          if (uploadTarget === 'edit' && editingCharacter) {
+            setEditingCharacter((prev) => (prev ? { ...prev, avatarUrl: url } : null));
+          } else {
+            setNewChar((prev) => ({ ...prev, avatarUrl: url }));
+          }
+        }}
       />
     </main>
   );
